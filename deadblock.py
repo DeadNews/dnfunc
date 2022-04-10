@@ -1,17 +1,19 @@
 #!/usr/bin/env python
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePath
-from typing import Any, Callable, Iterable, Optional, TypeVar, Union
+from typing import Any, Callable, Iterable, NamedTuple, TypeVar, Union
 
 import havsfunc as hav
+from insaneAA import ClipMode, EEDI3Mode, NNEDI3Mode
 from kagefunc import adaptive_grain, kirsch, retinex_edgemask
-from vapoursynth import GRAY16, RGB, YUV420P10, VideoNode, core
+from vapoursynth import GRAY16, RGB, YUV420P10, VideoFrame, VideoNode, core
 from vsutil import depth, get_depth, get_y, iterate, join, plane, split
 from yaml import safe_load
 
 T = TypeVar("T")
-Range = Union[Optional[int], tuple[Optional[int], Optional[int]]]
-Maps = Union[str, Range, list[Range]]
+Range = Union[int | None, tuple[int | None, int | None]]
+Maps = str | Range | list[Range]
+NormalizedRange = Union[int, tuple[int, int]]
 VideoFunc1 = Callable[[VideoNode], VideoNode]
 VideoFunc2 = Callable[[VideoNode, VideoNode], VideoNode]
 
@@ -29,7 +31,7 @@ def lram() -> int:
     return int(total_memory)
 
 
-def load_yaml(file_path: str) -> Optional[dict]:
+def load_yaml(file_path: str) -> dict | None:
     """
     Load yaml settings
     """
@@ -40,7 +42,7 @@ def load_yaml(file_path: str) -> Optional[dict]:
         return None
 
 
-def override_dc(data_class: T, block: str, zone: Optional[str] = None, **override: Any) -> T:
+def override_dc(data_class: T, block: str, zone: str = "", **override: Any) -> T:
     """
     Override default data_class params
     default -> yaml main -> yaml zone -> func params
@@ -54,7 +56,7 @@ def override_dc(data_class: T, block: str, zone: Optional[str] = None, **overrid
             # yaml main
             data_class = replace(data_class, **block_settings["main"])
 
-            if zone is not None and zone != "main":
+            if zone and zone != "main":
                 # yaml zone
                 data_class = replace(data_class, **block_settings[zone])
 
@@ -69,31 +71,27 @@ def override_dc(data_class: T, block: str, zone: Optional[str] = None, **overrid
 ######
 
 
-def get_edi3_mode() -> Iterable:
-    from collections import namedtuple
+class Edi3Mode(NamedTuple):
+    eedi3_mode: EEDI3Mode
+    device: int
+    nnedi3_mode: NNEDI3Mode
 
-    from insaneAA import EEDI3Mode, NNEDI3Mode
 
-    Edi3Mode = namedtuple("Edi3Mode", "eedi3_mode device nnedi3_mode")
-
+def get_edi3_mode() -> Edi3Mode:
     if Path("/bin/nvidia-smi").exists():
-        edi3_mode = Edi3Mode(
-            eedi3_mode=EEDI3Mode.OPENCL, device=0, nnedi3_mode=NNEDI3Mode.NNEDI3CL
-        )
+        return Edi3Mode(eedi3_mode=EEDI3Mode.OPENCL, device=0, nnedi3_mode=NNEDI3Mode.NNEDI3CL)
     else:
-        edi3_mode = Edi3Mode(eedi3_mode=EEDI3Mode.CPU, device=-1, nnedi3_mode=NNEDI3Mode.ZNEDI3)
-
-    return edi3_mode
+        return Edi3Mode(eedi3_mode=EEDI3Mode.CPU, device=-1, nnedi3_mode=NNEDI3Mode.ZNEDI3)
 
 
 @dataclass(frozen=True)
 class AASettings:
-    desc_h: int = None
+    desc_h: int = 0
     desc_str: float = 0.32
     kernel: str = "bicubic"
     bic_b: float = 1 / 3
     bic_c: float = 1 / 3
-    taps: Optional[int] = None
+    taps: int = 0
     #
     eedi3_only: bool = False
     #
@@ -104,29 +102,34 @@ class AASettings:
     #
     resc_bc: bool = False
     resc_mthr: int = 40
-    resc_expr: str = None
+    resc_expr: str = ""
     #
-    yuv_desc_h: int = None
-    yuv_desc_str: float = None
+    yuv_desc_h: int = 0
+    yuv_desc_str: float = 0.32
 
 
 def aa(
     clip: VideoNode,
-    zone: Optional[str] = None,
-    epname: Optional[str] = None,
-    ext_mask: Optional[VideoNode] = None,
+    zone: str = "",
+    epname: str = "",
+    ext_mask: VideoNode | None = None,
     **override: Any,
 ) -> VideoNode:
     """
-    Anti-aliasing finction
+    Anti-aliasing wrapper
     """
 
-    def _aa(clip, out_mode=None, desc_str=None, desc_h=None):
+    def insane_aa(
+        clip: VideoNode,
+        out_mode: ClipMode,
+        desc_h: int,
+        desc_str: float,
+    ) -> VideoNode:
         from insaneAA import insaneAA
 
         edi3set = get_edi3_mode()
         return insaneAA(
-            clip,
+            clip=clip,
             eedi3_mode=edi3set.eedi3_mode,
             eedi3_device=edi3set.device,
             nnedi3_mode=edi3set.nnedi3_mode,
@@ -148,15 +151,26 @@ def aa(
             output_mode=out_mode,
         )
 
-    def _yuv(clip):
+    def aa_yuv(clip: VideoNode) -> VideoNode:
         planes = split(clip)
 
-        planes[0] = _aa(planes[0], out_mode=2, desc_str=aaset.desc_str, desc_h=aaset.desc_h)
-        planes[1] = _aa(
-            planes[1], out_mode=2, desc_str=aaset.yuv_desc_str, desc_h=aaset.yuv_desc_h
+        planes[0] = insane_aa(
+            planes[0],
+            out_mode=ClipMode.MASKED,
+            desc_str=aaset.desc_str,
+            desc_h=aaset.desc_h,
         )
-        planes[2] = _aa(
-            planes[2], out_mode=2, desc_str=aaset.yuv_desc_str, desc_h=aaset.yuv_desc_h
+        planes[1] = insane_aa(
+            planes[1],
+            out_mode=ClipMode.MASKED,
+            desc_str=aaset.yuv_desc_str,
+            desc_h=aaset.yuv_desc_h,
+        )
+        planes[2] = insane_aa(
+            planes[2],
+            out_mode=ClipMode.MASKED,
+            desc_str=aaset.yuv_desc_str,
+            desc_h=aaset.yuv_desc_h,
         )
 
         return join(planes)
@@ -175,12 +189,14 @@ def aa(
     aaset = override_dc(aaset, block="aa", zone=zone, **override)
 
     if aaset.yuv_desc_h:
-        return _yuv(clip)
+        return aa_yuv(clip)
     else:
-        if aaset.eedi3_only:
-            return _aa(clip, out_mode=0, desc_h=clip.height)
-        else:
-            return _aa(clip, out_mode=0, desc_str=aaset.desc_str, desc_h=aaset.desc_h)
+        return insane_aa(
+            clip,
+            out_mode=ClipMode.FULL,
+            desc_str=aaset.desc_str,
+            desc_h=clip.height if aaset.eedi3_only else aaset.desc_h,
+        )
 
 
 def oped(
@@ -189,25 +205,28 @@ def oped(
     offset: int,
     start: int,
     end: int,
-    zone: Optional[str] = None,
-    ext_nc: Optional[VideoNode] = None,
+    zone: str = "",
+    ext_nc: VideoNode | None = None,
     input_aa: bool = False,
-    edgefix: Optional[VideoFunc1] = None,
-    filtr: Optional[VideoFunc2] = None,
+    edgefix: VideoFunc1 | None = None,
+    filtr: VideoFunc2 | None = None,
 ) -> VideoNode:
     """ """
 
-    def _save_titles(oped_titles, ncoped, ncoped_aa):
-        def __save_titles(oped_titles, ncoped, ncoped_aa):
+    def save_titles(oped_titles: VideoNode, ncoped: VideoNode, ncoped_aa: VideoNode) -> VideoNode:
+        def _save_titles(
+            oped_titles: VideoNode, ncoped: VideoNode, ncoped_aa: VideoNode
+        ) -> VideoNode:
+
             averaged = core.std.Expr(
                 [get_y(oped_titles), get_y(ncoped), get_y(ncoped_aa)], ["x y - z +"]
             )
 
             return join(
                 [averaged, plane(oped_titles, 1), plane(oped_titles, 2)]
-            )  # what if yuv=true ?
+            )  # What if yuv=true?
 
-        def _diff_mask(oped_titles, ncoped):
+        def _diff_mask(oped_titles: VideoNode, ncoped: VideoNode) -> VideoNode:
             diff_clip = core.std.MakeDiff(get_y(oped_titles), get_y(ncoped), planes=[0])
             diff_mask = diff_clip.std.Prewitt().std.Expr("x 25 < 0 x ?")
             diff_mask = (
@@ -217,9 +236,9 @@ def oped(
             return diff_mask
 
         diff_mask = _diff_mask(oped_titles, ncoped)
-        save_titles = __save_titles(oped_titles, ncoped, ncoped_aa)
+        save_titles = _save_titles(oped_titles, ncoped, ncoped_aa)
 
-        return _masked_merge(save_titles, oped_titles, diff_mask, yuv=False)  # what if yuv=true ?
+        return masked_merge(save_titles, oped_titles, diff_mask, yuv=False)  # What if yuv=true?
 
     ncoped_end = end - 1 - start + offset
 
@@ -257,7 +276,7 @@ def oped(
         + f"nc{name}_aa — {ncoped_aa.num_frames}"
     )
 
-    return _save_titles(oped_titles, ncoped, ncoped_aa)
+    return save_titles(oped_titles, ncoped, ncoped_aa)
 
 
 ##########
@@ -300,7 +319,7 @@ def adaptive_mix(
 
     adaptive_mask = adaptive_grain(clip16, luma_scaling=scaling, show_mask=True).std.Invert()
 
-    return _masked_merge(f1, f2, adaptive_mask, yuv=yuv)
+    return masked_merge(f1, f2, adaptive_mask, yuv=yuv)
 
 
 def adaptive_debandmask(
@@ -308,7 +327,7 @@ def adaptive_debandmask(
     src_for_gradfunmask: VideoNode,
     db_mask: VideoNode,
     yaml: dict,
-    db_expr: Optional[str] = None,
+    db_expr: str = "",
 ) -> VideoNode:
 
     for zone in yaml:
@@ -343,7 +362,7 @@ def adaptivesmdegrain_(clip16: VideoNode, smdegrain: VideoNode, yaml: dict) -> V
 def save_uv_unique_lines(
     denoised: VideoNode,
     clip16: VideoNode,
-    mode="retinex",
+    mode: str = "retinex",
     sigma: float = 1.0,
 ) -> VideoNode:
 
@@ -357,8 +376,8 @@ def save_uv_unique_lines(
         mask_u = edge_detect(planes_clip[1], mode="kirsch")
         mask_v = edge_detect(planes_clip[2], mode="kirsch")
 
-    fix_u = _masked_merge(planes_deno[1], planes_clip[1], mask_u)
-    fix_v = _masked_merge(planes_deno[2], planes_clip[2], mask_v)
+    fix_u = masked_merge(planes_deno[1], planes_clip[1], mask_u)
+    fix_v = masked_merge(planes_deno[2], planes_clip[2], mask_v)
 
     return join([planes_deno[0], fix_u, fix_v])
 
@@ -366,11 +385,13 @@ def save_uv_unique_lines(
 def save_black(clip: VideoNode, filtered: VideoNode, threshold: float = 0.06276) -> VideoNode:
     """
     stolen from https://github.com/Irrational-Encoding-Wizardry/lvsfunc/blob/master/lvsfunc.py
-    return filtered when avg exceeds the threshold.
+    return filtered when avg exceeds the threshold
     """
     from functools import partial
 
-    def _diff(n, f, clip, filtered, threshold):
+    def _diff(
+        n: int, f: VideoFrame, clip: VideoNode, filtered: VideoNode, threshold: float
+    ) -> VideoNode:
         return filtered if f.props.PlaneStatsAverage > threshold else clip
 
     avg = core.std.PlaneStats(clip)
@@ -479,17 +500,17 @@ def bm3d_(
 class FilterSettings:
     rt_sigma: float = 1.0
     dn_mode: str = "smdegrain"
-    dn_ttsmooth: dict = None
+    dn_ttsmooth: bool = False
     bm_sigma: float = 2.0
     bm_radius: int = 1
     sm_thr: int = 40
     sm_pref_mode: int = 1
     dn_pref: bool = False
-    dn_pref_scaling: float = None
-    dn_pref_mul: int = None
+    dn_pref_scaling: float = 0.0
+    dn_pref_mul: int = 0
     dn_save_uv: bool = False
-    dn_adaptive: dict = None
-    dn_expr: str = None
+    dn_adaptive: dict | None = None
+    dn_expr: str = ""
     cs_mode: int = 1
     cs_val: float = 0.5
     cs_merge: int = 0
@@ -504,19 +525,19 @@ class FilterSettings:
     db_yuv: bool = False
     db_saveblack: int = 1
     db_saveblack_tolerance: int = 2
-    db_adaptive: dict = None
-    db_expr: str = None
-    ag_str: float = None
-    ag_scaling: float = None
+    db_adaptive: dict | None = None
+    db_expr: str = ""
+    ag_str: float = 0.0
+    ag_scaling: float = 24.0
     ag_saveblack: int = 1
     ag_saveblack_tolerance: int = 2
 
 
 def filt(
     mrgc: VideoNode,
-    zone: Optional[str] = None,
+    zone: str = "",
     out_mode: int = 0,
-    prefilt_func: Optional[VideoFunc2] = None,
+    prefilt_func: VideoFunc2 | None = None,
     **override: Any,
 ) -> VideoNode:
 
@@ -535,13 +556,10 @@ def filt(
     else:
         # dn_ttsmooth
         if fset.dn_ttsmooth:
-            if fset.dn_ttsmooth is True:
-                ttsmooth_set = {"thresh": 1, "mdiff": 0, "strength": 1}
-            else:
-                ttsmooth_set = fset.dn_ttsmooth
+            ttsmooth_set = {"thresh": 1, "mdiff": 0, "strength": 1}
 
             ttmpsm = clip16.ttmpsm.TTempSmooth(maxr=7, fp=True, **ttsmooth_set)
-            src_denoise = _masked_merge(ttmpsm, clip16, rt_mask_clip16, yuv=True)
+            src_denoise = masked_merge(ttmpsm, clip16, rt_mask_clip16, yuv=True)
         else:
             src_denoise = clip16
 
@@ -562,7 +580,7 @@ def filt(
                 sm_pref_mode=fset.sm_pref_mode,
             )
 
-        denoised = _masked_merge(full_denoise, clip16, rt_mask_clip16, yuv=True)
+        denoised = masked_merge(full_denoise, clip16, rt_mask_clip16, yuv=True)
 
         # dn_pref
         if fset.dn_pref or fset.cs_mode:
@@ -588,7 +606,7 @@ def filt(
                     sm_thr=fset.sm_thr * fset.dn_pref_mul,
                     sm_pref_mode=fset.sm_pref_mode,
                 )
-                if fset.db_rt_mode == 4:
+                if fset.db_rt_mode == 4 and fset.db_adaptive is not None:
                     rt_mask_denoised_mix = adaptive_mix(
                         clip16,
                         rt_mask_denoised,
@@ -598,7 +616,7 @@ def filt(
                     )
 
             if fset.dn_pref or fset.db_gf_mode == 3:
-                denoised_pref = _masked_merge(full_denoise, clip16, rt_mask_mix, yuv=True)
+                denoised_pref = masked_merge(full_denoise, clip16, rt_mask_mix, yuv=True)
 
                 if fset.dn_pref:
                     denoised = denoised_pref
@@ -632,7 +650,7 @@ def filt(
                     cs_mask_merge = cs_mask
                 elif fset.cs_merge == 2:
                     cs_mask_merge = cs_mask.std.Inflate()
-                denoised = _masked_merge(denoised, denoised_expr, cs_mask_merge, yuv=True)
+                denoised = masked_merge(denoised, denoised_expr, cs_mask_merge, yuv=True)
 
     if fset.db_thr == 0:
         debanded = denoised
@@ -675,9 +693,9 @@ def filt(
                 out_mask=True,
                 tolerance=fset.db_saveblack_tolerance,
             )
-            db_mask = _masked_merge(db_mask, black_mask, mask=black_mask, yuv=False)
+            db_mask = masked_merge(db_mask, black_mask, mask=black_mask, yuv=False)
 
-        debanded = _masked_merge(debanded, denoised, db_mask, yuv=fset.db_yuv)
+        debanded = masked_merge(debanded, denoised, db_mask, yuv=fset.db_yuv)
 
     # final masked_merge
     if fset.dn_mode is None:
@@ -695,9 +713,9 @@ def filt(
             rt_mask_afterdb = rt_mask_denoised_x2
 
         if fset.db_pref:
-            filtered = _masked_merge(debanded, denoised, rt_mask_afterdb, yuv=fset.db_yuv)
+            filtered = masked_merge(debanded, denoised, rt_mask_afterdb, yuv=fset.db_yuv)
         else:
-            filtered = _masked_merge(debanded, clip16, rt_mask_afterdb, yuv=fset.db_yuv)
+            filtered = masked_merge(debanded, clip16, rt_mask_afterdb, yuv=fset.db_yuv)
 
     # adaptive_grain
     if out_mode == 1:
@@ -709,7 +727,7 @@ def filt(
             filtered = save_black(filtered, grained, threshold=0.06276)
         elif fset.ag_saveblack == 2:
             filtered = rfs_color(
-                grained, filtered, mask_src=mrgc, tolerance=fset.ag_saveblack_tolerance
+                f1=grained, f2=filtered, mask_src=mrgc, tolerance=fset.ag_saveblack_tolerance
             )
         else:
             filtered = grained
@@ -737,37 +755,36 @@ def filt(
 #########
 
 
-def chapt(epname: str, chaptname: str, fallback: Optional[str] = None) -> Optional[int]:
+def chapt(epname: str, chaptname: str, fallback: str = "") -> int | None:
 
     chapters = load_yaml("./chapters.yaml")
 
-    epchaps = chapters[epname]
+    if chapters is None:
+        return None
+    else:
+        epchaps = chapters[epname]
 
-    return epchaps.get(chaptname, epchaps.get(fallback, "None"))
+        return epchaps.get(chaptname, epchaps.get(fallback))
 
 
-def load_map(epname: str, mapname: str) -> Optional[Any]:
+def load_map(epname: str, mapname: str) -> Any | None:
 
     maps = load_yaml("./maps.yaml")
 
-    return maps[mapname].get(epname)
+    return None if maps is None else maps[mapname].get(epname)
 
 
-def fname(file: str, mode: str = "main") -> str:
+def fname(file: str, aa_mode: bool = False) -> str:
     f1 = PurePath(file)
 
-    if mode == "main":
-        return f1.stem
-
-    elif mode == "aa":
-        return f1.stem[0:-3]
+    return f1.stem[0:-3] if aa_mode else f1.stem
 
 
 def source(
-    file: Union[str, Path, PurePath],
-    bits: Optional[int] = None,
-    fpsnum: Optional[int] = None,
-    fpsden: Optional[int] = None,
+    file: str | Path | PurePath,
+    bits: int = 0,
+    fpsnum: int = 0,
+    fpsden: int = 0,
 ) -> VideoNode:
 
     f1 = PurePath(file)
@@ -780,7 +797,7 @@ def source(
     if fpsnum and fpsden:
         src = src.std.AssumeFPS(fpsnum=fpsnum, fpsden=fpsden)
 
-    if bits is None:
+    if not bits:
         bits = PROC_DEPTH
 
     return depth(src, bits)
@@ -798,7 +815,7 @@ def out(
     clip: VideoNode,
     epname: str,
     bits: int = 10,
-    filtred: Optional[VideoFunc2] = None,
+    filtred: VideoFunc2 | None = None,
 ) -> VideoNode:
 
     if get_depth(clip) != bits:
@@ -819,11 +836,11 @@ def out(
 def pw(
     mrgc: VideoNode,
     masks: Iterable[int] = (3, 4),
-    mask_zone: Optional[str] = None,
+    mask_zone: str = "",
     epis: VideoNode = None,
     clip: VideoNode = None,
-    clip2_zone: Optional[str] = None,
-    ext_rip: Optional[VideoNode] = None,
+    clip2_zone: str = "",
+    ext_rip: VideoNode | None = None,
 ) -> VideoNode:
 
     pw_list = []
@@ -857,25 +874,26 @@ def aa_pw(epis: VideoNode, zones: Iterable[str] = ("main", "test")) -> VideoNode
     return core.std.Interleave(pw_list)
 
 
-def _masked_merge(f1: VideoNode, f2: VideoNode, mask: VideoNode, yuv: bool = False) -> VideoNode:
-
-    planes = [0, 1, 2] if yuv else [0]
-
-    return core.std.MaskedMerge(f1, f2, mask=mask, planes=planes)
+def masked_merge(f1: VideoNode, f2: VideoNode, mask: VideoNode, yuv: bool = False) -> VideoNode:
+    return core.std.MaskedMerge(
+        clipa=f1,
+        clipb=f2,
+        mask=mask,
+        planes=[0, 1, 2] if yuv else [0],
+    )
 
 
 def rfs(f1: VideoNode, f2: VideoNode, maps: Maps) -> VideoNode:
 
     if isinstance(maps, str):
         return core.remap.Rfs(f1, f2, mappings=maps)
-
     else:
         from lvsfunc import rfs as lrfs
 
         return lrfs(f1, f2, ranges=maps)
 
 
-def _mask_resize(mask: VideoNode, format_src: Optional[VideoNode] = None) -> VideoNode:
+def _mask_resize(mask: VideoNode, format_src: VideoNode | None = None) -> VideoNode:
 
     # if format_src:
     #     mask_format = format_src.format.replace(color_family=GRAY, subsampling_w=0, subsampling_h=0)
@@ -890,17 +908,17 @@ def _mask_resize(mask: VideoNode, format_src: Optional[VideoNode] = None) -> Vid
 
 
 def rfs_color(
-    f1: VideoNode = None,
-    f2: VideoNode = None,
-    mask_src: VideoNode = None,
+    mask_src: VideoNode,
+    f1: VideoNode | None = None,
+    f2: VideoNode | None = None,
     color: str = "$000000",
     tolerance: int = 2,
     out_mask: bool = False,
-    maps: Optional[Maps] = None,
+    maps: Maps | None = None,
 ) -> VideoNode:
     """ """
 
-    def _color_mask(mask_src, format_src):
+    def _color_mask(mask_src: VideoNode, format_src: VideoNode) -> VideoNode:
 
         if get_depth(mask_src) != 8:
             mask_src = depth(mask_src, 8)
@@ -913,7 +931,7 @@ def rfs_color(
     if out_mask:
         return mask
 
-    replaced = _masked_merge(f1, f2, mask, yuv=False)
+    replaced = masked_merge(f1, f2, mask, yuv=False)
 
     return replaced if not maps else rfs(f1, replaced, maps)
 
@@ -921,18 +939,18 @@ def rfs_color(
 def rfs_image(
     mrgc: VideoNode,
     epis: VideoNode,
-    maskname: str = None,
+    maskname: str = "",
     yuv: bool = False,
-    maps: Optional[Maps] = None,
+    maps: Maps | None = None,
 ) -> VideoNode:
     """ """
 
-    def _image_mask(maskname, format_src):
+    def _image_mask(maskname: str, format_src: VideoNode) -> VideoNode:
         mask = core.imwri.Read(f"./mask/{maskname}.png")
         return _mask_resize(mask, format_src)
 
     mask = _image_mask(maskname, format_src=mrgc)
-    replaced = _masked_merge(mrgc, epis, mask, yuv=yuv)
+    replaced = masked_merge(mrgc, epis, mask, yuv=yuv)
 
     return replaced if not maps else rfs(mrgc, replaced, maps)
 
@@ -940,14 +958,14 @@ def rfs_image(
 def rfs_diff(
     mrgc: VideoNode,
     epis: VideoNode,
-    maps: Optional[Maps] = None,
+    maps: Maps | None = None,
     mthr: int = 25,
     yuv: bool = True,
     out_mask: bool = False,
 ) -> VideoNode:
     """ """
 
-    def _diff_mask(oped_titles, ncoped):
+    def _diff_mask(oped_titles: VideoNode, ncoped: VideoNode) -> VideoNode:
         diff_clip = core.std.MakeDiff(get_y(oped_titles), get_y(ncoped), planes=[0])
         diff_mask = diff_clip.std.Prewitt().std.Expr(f"x {mthr} < 0 x ?")
         diff_mask = (
@@ -960,7 +978,7 @@ def rfs_diff(
     if out_mask:
         return mask
 
-    replaced = _masked_merge(mrgc, epis, mask, yuv=yuv)
+    replaced = masked_merge(mrgc, epis, mask, yuv=yuv)
 
     return replaced if not maps else rfs(mrgc, replaced, maps)
 
@@ -968,15 +986,15 @@ def rfs_diff(
 def rfs_resc(
     mrgc: VideoNode = None,
     epis: VideoNode = None,
-    zone: Optional[str] = None,
-    maps: Optional[Maps] = None,
+    zone: str = "",
+    maps: Maps | None = None,
     filt: VideoFunc1 = None,
     out_mask: bool = False,
     **override: Any,
 ) -> VideoNode:
     """ """
 
-    def _diff_rescale_mask(source):
+    def _diff_rescale_mask(source: VideoNode) -> VideoNode:
         """Builds mask from difference of original and re-upscales clips; based on atomchtools"""
         from descale import Descale
         from fvsfunc import Resize
@@ -1032,16 +1050,16 @@ def rfs_resc(
     if out_mask:
         return mask
 
-    yuv = dset.yuv_desc_h is not None  # needs own mask for each plane
-    replaced = _masked_merge(mrgc, epis, mask, yuv=yuv)
+    yuv = dset.yuv_desc_h is not None  # A different mask is required for each plane?
+    replaced = masked_merge(mrgc, epis, mask, yuv=yuv)
 
     return replaced if not maps else rfs(mrgc, replaced, maps)
 
 
-def hard(clip: VideoNode, mthr: int, zone: Optional[str] = None, **override: Any) -> VideoNode:
+def hard(clip: VideoNode, mthr: int, zone: str = "", **override: Any) -> VideoNode:
     """ """
 
-    def _hard(src) -> VideoNode:
+    def _hard(src: VideoNode) -> VideoNode:
         from HardAA import HardAA
 
         use_cl = get_edi3_mode().device != -1
@@ -1057,7 +1075,7 @@ def hard(clip: VideoNode, mthr: int, zone: Optional[str] = None, **override: Any
         revset = AASettings()
         revset = override_dc(revset, block="aa", zone=zone, **override)
 
-        revert_upscale = revert_upscale(
+        revert = revert_upscale(
             clip,
             descale_strength=revset.desc_str,
             descale_height=revset.desc_h,
@@ -1066,9 +1084,7 @@ def hard(clip: VideoNode, mthr: int, zone: Optional[str] = None, **override: Any
             bic_c=revset.bic_c,
         )
 
-        # hard_aa = _hard(clip) # <-
-        # get_y
-        hard_aa = _hard(revert_upscale)
+        hard_aa = _hard(revert)
         hard = rescale_(hard_aa, mode="insaneAA", ref_clip=clip)
 
     return hard
@@ -1079,7 +1095,7 @@ def rfs_hard(
     src: VideoNode,
     mthr: int,
     maps: Maps,
-    zone: Optional[str] = None,
+    zone: str = "",
     **override: Any,
 ) -> VideoNode:
 
@@ -1102,7 +1118,7 @@ class QTGMCSettings:
     sharp: float = 0.2
 
 
-def qtgmc(clip: VideoNode, zone: Optional[str] = None, **override: Any) -> VideoNode:
+def qtgmc(clip: VideoNode, zone: str = "", **override: Any) -> VideoNode:
     """
     InputType — 0 for interlaced input. Mode 1 is for general progressive material.
     Modes 2 & 3 are designed for badly deinterlaced material.
@@ -1144,7 +1160,7 @@ def rfs_qtgmc(
     mrgc: VideoNode,
     src: VideoNode,
     maps: Maps,
-    zone: Optional[str] = None,
+    zone: str = "",
     **override: Any,
 ) -> VideoNode:
 
@@ -1153,7 +1169,7 @@ def rfs_qtgmc(
     return rfs(mrgc, stabilize, maps)
 
 
-def edge_detect(clip: VideoNode, mode: str, expr: Optional[str] = None) -> VideoNode:
+def edge_detect(clip: VideoNode, mode: str, expr: str = "") -> VideoNode:
     clip = get_y(clip)
 
     if mode == "sobel":
@@ -1197,7 +1213,7 @@ def outerline_mask(
     mode: str = "kirsch",
     max_c: int = 3,
     min_c: int = 1,
-    ext_mask: Optional[VideoNode] = None,
+    ext_mask: VideoNode | None = None,
 ) -> VideoNode:
 
     if not ext_mask:
@@ -1225,16 +1241,16 @@ class DehaloSettings:
 
 def rfs_dehalo(
     clip: VideoNode,
-    ext_dehalo: VideoNode = None,
-    zone: Optional[str] = None,
-    ext_mask: VideoNode = None,
-    maps: Maps = None,
+    ext_dehalo: VideoNode | None = None,
+    zone: str = "",
+    ext_mask: VideoNode | None = None,
+    maps: Maps | None = None,
     out_mask: bool = False,
     **override: Any,
 ) -> VideoNode:
     """ """
 
-    def _dehalo(clip):
+    def _dehalo(clip: VideoNode) -> VideoNode:
         return hav.DeHalo_alpha(
             clip,
             rx=dehset.rx,
@@ -1264,14 +1280,14 @@ def rfs_dehalo(
     if out_mask:
         return mask
 
-    replaced = _masked_merge(clip, dehalo, mask, yuv=False)
+    replaced = masked_merge(clip, dehalo, mask, yuv=False)
 
     return replaced if not maps else rfs(clip, replaced, maps)
 
 
 def dehalo_chroma(
     clip: VideoNode,
-    zone: Optional[str] = None,
+    zone: str = "",
 ) -> VideoNode:
 
     planes = split(clip)
@@ -1283,8 +1299,12 @@ def dehalo_chroma(
 
 @dataclass(frozen=True)
 class RepairSettings:
-    edgclr_args: dict = None  # FrozenDict(a=1, b=2)
-    dering_args: dict = None
+    edgclr_args: dict[str, int] = field(
+        default_factory=lambda: ({"strength": 10, "rmode": 13, "smode": 1})
+    )
+    dering_args: dict[str, int] = field(
+        default_factory=lambda: ({"mrad": 2, "mthr": 70, "thr": 12, "darkthr": 3})
+    )
     mode: str = "kirsch"
     max_c: int = 3
     min_c: int = 1
@@ -1293,53 +1313,45 @@ class RepairSettings:
 
 def rfs_repair(
     clip: VideoNode,
-    zone: Optional[str] = None,
+    zone: str = "",
     out_mask: bool = False,
-    maps: Optional[Maps] = None,
+    maps: Maps | None = None,
     **override: Any,
 ) -> VideoNode:
     """ """
 
-    def _edgclr(clip):
-        return hav.EdgeCleaner(clip, **repset.edgclr_args)
-
-    def _dering(clip):
-        return hav.HQDeringmod(clip, **repset.dering_args)
-
     repset = RepairSettings()
     repset = override_dc(repset, block="repair", zone=zone, **override)
 
-    if repset.edgclr_args or repset.dering_args:
-        repair = clip
     if repset.edgclr_args:
-        repair = _edgclr(repair)
+        repair = hav.EdgeCleaner(clip, **repset.edgclr_args)
     if repset.dering_args:
-        repair = _dering(repair)
+        repair = hav.HQDeringmod(clip, **repset.dering_args)
 
     mask_src = repair if repset.mask_from_filtred else clip
-    mask = outerline_mask(mask_src, mode=repset.mode, max_c=repset.max_c, min_c=repset.min_c)
+    mask = outerline_mask(clip=mask_src, mode=repset.mode, max_c=repset.max_c, min_c=repset.min_c)
     if out_mask:
         return mask
 
-    replaced = _masked_merge(clip, repair, mask, yuv=False)
+    replaced = masked_merge(clip, repair, mask, yuv=False)
 
     return replaced if not maps else rfs(clip, replaced, maps)
 
 
 @dataclass(frozen=True)
 class LineDarkSettings:
-    linedark_args: dict = None
+    linedark_args: dict[str, int] | None = None
 
 
 def rfs_linedark(
     clip: VideoNode,
-    zone: Optional[str] = None,
-    maps: Optional[Maps] = None,
+    zone: str = "",
+    maps: Maps | None = None,
     **override: Any,
 ) -> VideoNode:
     """ """
 
-    def _linedark(clip):
+    def _linedark(clip: VideoNode) -> VideoNode:
         return hav.FastLineDarkenMOD(clip, **ldset.linedark_args)
 
     ldset = LineDarkSettings()
@@ -1355,13 +1367,13 @@ class SsharpSettings:
     mode: str = "cas"
     sharp: float = 0.1
     mask_mode: str = "sobel"
-    mask_expr: str = None
+    mask_expr: str = ""
     yuv: bool = False
 
 
 def rfs_sharp(
     clip: VideoNode,
-    zone: Optional[str] = None,
+    zone: str = "",
     maps: Maps = None,
     out_mask: bool = False,
     **override: Any,
@@ -1381,24 +1393,24 @@ def rfs_sharp(
 
         sharp = sharpen(clip, sstr=sharp)
 
-    replaced = _masked_merge(clip, sharp, mask, yuv=shset.yuv)
+    replaced = masked_merge(clip, sharp, mask, yuv=shset.yuv)
 
     return replaced if not maps else rfs(clip, replaced, maps)
 
 
 @dataclass
 class EdgeFixSettings:
-    crop_args: dict = None
-    top: Union[int, list[int]] = None
-    bottom: Union[int, list[int]] = None
-    left: Union[int, list[int]] = None
-    right: Union[int, list[int]] = None
-    radius: Union[int, list[int]] = None
-    yuv: bool = None
+    crop_args: dict[str, int] | None = None
+    top: int | list[int] = 0
+    bottom: int | list[int] = 0
+    left: int | list[int] = 0
+    right: int | list[int] = 0
+    radius: int | list[int] = 0
+    yuv: bool = False
 
     @staticmethod
-    def to_list(edge):
-        return edge if isinstance(edge, list) else (edge, None, None)
+    def to_list(val: int | list[int]) -> list[int]:
+        return val if isinstance(val, list) else [val, 0, 0]
 
     def check_yuv(self) -> None:
         self.yuv = any(
@@ -1406,56 +1418,17 @@ class EdgeFixSettings:
             for val in (self.top, self.bottom, self.left, self.right, self.radius)
         )
 
-    def edges_to_list(self) -> None:
-        self.top = self.to_list(self.top)
-        self.bottom = self.to_list(self.bottom)
-        self.left = self.to_list(self.left)
-        self.right = self.to_list(self.right)
-        self.radius = self.to_list(self.radius)
-
 
 def edgefix(
     epis: VideoNode,
-    zone: Optional[str] = None,
+    zone: str = "",
     **override: Any,
 ) -> tuple[VideoNode, VideoNode, VideoFunc1]:
     """ """
 
-    def _edgefixer(epis):
-        def get_ef_plane(n: int):
-            return planes[n].edgefixer.Continuity(
-                top=edset.top[n],
-                bottom=edset.bottom[n],
-                left=edset.left[n],
-                right=edset.right[n],
-                radius=edset.radius[n],
-            )
-
-        if edset.yuv or edset.crop_args:
-            planes = split(epis)
-
-            if edset.crop_args:
-                y = (
-                    planes[0]
-                    .std.Crop(**edset.crop_args)
-                    .edgefixer.Continuity(
-                        top=edset.top[0],
-                        bottom=edset.bottom[0],
-                        left=edset.left[0],
-                        right=edset.right[0],
-                        radius=edset.radius[0],
-                    )
-                    .std.AddBorders(**edset.crop_args)
-                )
-            else:
-                y = get_ef_plane(0)
-
-            u = get_ef_plane(1)
-            v = get_ef_plane(2)
-
-            return join([y, u, v])
-
-        else:
+    def _edgefixer(epis: VideoNode) -> VideoNode:
+        if not edset.yuv or not edset.crop_args:
+            # luma
             return core.edgefixer.Continuity(
                 epis,
                 top=edset.top,
@@ -1465,12 +1438,58 @@ def edgefix(
                 radius=edset.radius,
             )
 
+        else:
+            # yuv
+            top = edset.to_list(edset.top)
+            bottom = edset.to_list(edset.bottom)
+            left = edset.to_list(edset.left)
+            right = edset.to_list(edset.right)
+            radius = edset.to_list(edset.radius)
+
+            planes = split(epis)
+
+            if not edset.crop_args:
+                y = planes[0].edgefixer.Continuity(
+                    top=top[0],
+                    bottom=bottom[0],
+                    left=left[0],
+                    right=right[0],
+                    radius=radius[0],
+                )
+            else:
+                y = (
+                    planes[0]
+                    .std.Crop(**edset.crop_args)
+                    .edgefixer.Continuity(
+                        top=top[0],
+                        bottom=bottom[0],
+                        left=left[0],
+                        right=right[0],
+                        radius=radius[0],
+                    )
+                    .std.AddBorders(**edset.crop_args)
+                )
+
+            u = planes[1].edgefixer.Continuity(
+                top=top[1],
+                bottom=bottom[1],
+                left=left[1],
+                right=right[1],
+                radius=radius[1],
+            )
+            v = planes[2].edgefixer.Continuity(
+                top=top[2],
+                bottom=bottom[2],
+                left=left[2],
+                right=right[2],
+                radius=radius[2],
+            )
+
+            return join([y, u, v])
+
     edset = EdgeFixSettings()
     edset = override_dc(edset, block="edgefix", zone=zone, **override)
-
     edset.check_yuv()
-    if edset.yuv or edset.crop_args:
-        edset.edges_to_list()
 
     epis_back = epis
     epis = _edgefixer(epis)
@@ -1488,20 +1507,20 @@ def wipe_luma_row(clip: VideoNode, **crop: Any) -> VideoNode:
 
 @dataclass(frozen=True)
 class CropSettings:
-    top: int = None
-    bottom: int = None
-    left: int = None
-    right: int = None
+    top: int = 0
+    bottom: int = 0
+    left: int = 0
+    right: int = 0
 
 
 def crop(
     epis: VideoNode,
-    zone: Optional[str] = None,
+    zone: str = "",
     **override: Any,
 ) -> tuple[VideoNode, VideoFunc1]:
     """Crop"""
 
-    def _crop(epis):
+    def _crop(epis: VideoNode) -> VideoNode:
         return core.std.CropRel(
             epis,
             top=crset.top,
@@ -1592,7 +1611,7 @@ def chromashift(clip: VideoNode, cx: int = 0, cy: int = 0) -> VideoNode:
 
 
 def adaptive_chromashift(epis: VideoNode, fix: VideoNode, pw_mode: bool = False) -> VideoNode:
-    def make_diff(clip):
+    def make_diff(clip: VideoNode) -> VideoNode:
         from fvsfunc import Downscale444
 
         desc_h = 720
@@ -1608,10 +1627,10 @@ def adaptive_chromashift(epis: VideoNode, fix: VideoNode, pw_mode: bool = False)
 
         return core.std.MakeDiff(y, uv)
 
-    def _adaptive_chromashift(epis, fix, pw_mode=False):
+    def _adaptive_chromashift(epis: VideoNode, fix: VideoNode, pw_mode: bool = False) -> VideoNode:
         from functools import partial
 
-        def _frame_eval(n, f, f1, f2):
+        def _frame_eval(n: int, f: VideoFrame, f1: VideoNode, f2: VideoNode) -> VideoNode:
 
             c0 = f[1].props.PlaneStatsAverage > f[0].props.PlaneStatsAverage
             p1 = f[3].props.PlaneStatsAverage > f[2].props.PlaneStatsAverage
@@ -1678,10 +1697,10 @@ def adaptive_chromashift(epis: VideoNode, fix: VideoNode, pw_mode: bool = False)
 def rescale_(
     clip: VideoNode,
     mode: str = "insane_aa",
-    ref_clip: Optional[VideoNode] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
-    zone: Optional[str] = None,
+    ref_clip: VideoNode | None = None,
+    width: int = 0,
+    height: int = 0,
+    zone: str = "",
     **override: Any,
 ) -> VideoNode:
 
@@ -1689,13 +1708,13 @@ def rescale_(
         dx = ref_clip.width
         dy = ref_clip.height
     else:
-        if width is not None and height is not None:
+        if width and height:
             dx = width
             dy = height
-        elif height is not None:
+        elif height:
             dx = hav.m4((clip.width * height) / clip.height)
             dy = height
-        elif width is not None:
+        elif width:
             dx = width
             dy = hav.m4((clip.height * width) / clip.width)
 
@@ -1752,8 +1771,8 @@ def downscale(clip: VideoNode, desc_h: int = 720, to420: bool = False) -> VideoN
 def rfs_black_crop(
     clip: VideoNode,
     maps: Maps,
-    top: Optional[int] = None,
-    bot: Optional[int] = None,
+    top: int = 0,
+    bot: int = 0,
 ) -> VideoNode:
 
     fixed_black = clip.std.CropRel(top=top, bottom=bot).std.AddBorders(top=top, bottom=bot)
@@ -1761,45 +1780,24 @@ def rfs_black_crop(
     return rfs(clip, fixed_black, maps)
 
 
-def get_ranges(frames: list[int]) -> list[Range]:
-    """
-    Identify groups of continuous frames intervals in a list
-    :param frames:     List of frames
-
-    :return:           Ranges of frames.
-                       Integer values in the list indicate single frames,
-                       Tuple values indicate inclusive ranges.
-    """
-    from itertools import count, groupby
-
-    ranges = []
-    counter = count()
-
-    for _, group in groupby(frames, key=lambda x: x - next(counter)):
-        block = tuple(group)
-
-        if (start := block[0]) == (end := block[-1]):
-            ranges.append(start)
-        else:
-            ranges.append((start, end))
-
-    return ranges
-
-
-def get_list(frames):
-    listt = []
-    for x in frames:
+def get_list(ranges: list[NormalizedRange]) -> list[int]:
+    frames = []
+    for x in ranges:
         if type(x) is tuple:
             start, end = x
-            listt.extend(list(range(start, end + 1)))
-        else:
-            listt.append(x)
+            frames.extend(list(range(start, end + 1)))
+        elif type(x) is int:
+            frames.append(x)
 
-    return listt
+    return frames
 
 
 def pv_diff(
-    tv: VideoNode, bd: VideoNode, thr: float = 72, name=None, exclude_ranges=None
+    tv: VideoNode,
+    bd: VideoNode,
+    thr: float = 72,
+    name: str = "",
+    exclude_ranges: list[NormalizedRange] | None = None,
 ) -> VideoNode:
     from lvsfunc import diff
 
@@ -1817,7 +1815,6 @@ def pv_diff(
             log.write(f"{name}=")
 
         if frames:
-            # log.write(f"{str(get_ranges(frames))} \n\n")
             log.write(f"{repr(frames)} \n\n")
         else:
             log.write("no differences found")
