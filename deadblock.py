@@ -1130,11 +1130,8 @@ def qtgmc(clip: VideoNode, zone: str = "", **override: Any) -> VideoNode:
     Modes 2 & 3 are designed for badly deinterlaced material.
     Sharpness — The default 1.0 is fairly sharp. If using source-match the default is 0.2
     """
-
     qset = QTGMCSettings()
     qset = override_dc(qset, block="qtgmc", zone=zone, **override)
-
-    divisor = 2 if qset.input_type == 0 else 1
 
     device = get_edi3_mode().device
     opencl = device != -1
@@ -1143,7 +1140,7 @@ def qtgmc(clip: VideoNode, zone: str = "", **override: Any) -> VideoNode:
         Input=clip,
         Preset=qset.preset,
         InputType=qset.input_type,
-        FPSDivisor=divisor,
+        FPSDivisor=2 if qset.input_type == 0 else 1,
         ShutterBlur=3,
         ShowSettings=False,
         TFF=True,
@@ -1598,8 +1595,8 @@ def chromashift(clip: VideoNode, cx: int = 0, cy: int = 0) -> VideoNode:
     cx — Horizontal chroma shift. Positive value shifts chroma to left, negative value shifts chroma to right.
     cy — Vertical chroma shift. Positive value shifts chroma upwards, negative value shifts chroma downwards.
     """
-
     planes = split(clip)
+
     planes[1] = core.resize.Spline36(planes[1], src_left=cx, src_top=cy)
     planes[2] = core.resize.Spline36(planes[2], src_left=cx, src_top=cy)
 
