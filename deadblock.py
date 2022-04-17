@@ -180,7 +180,6 @@ def aa(
     """
     Anti-aliasing wrapper
     """
-
     if epname:
         f1 = Path(f"./temp/{epname}_aa_lossless.mp4")
         if f1.is_file():
@@ -229,7 +228,7 @@ def save_titles(oped_clip: VideoNode, ncoped: VideoNode, ncoped_aa: VideoNode) -
     )
 
     saved_titles = join(oped_planes)
-    mask = diff_mask(clipa=oped_clip, clipb=ncoped)
+    mask = diff_mask(oped_clip, ncoped)
 
     return masked_merge(saved_titles, oped_clip, mask=mask, yuv=False)
 
@@ -299,18 +298,18 @@ def gradfun_mask(source: VideoNode, thr_det: float = 1, mode: int = 3) -> VideoN
     src_y = get_y(source)
     src_8 = depth(src_y, 8)
 
-    td_lo = max(thr_det * 0.75, 1.0)
-    td_hi = max(thr_det, 1.0)
-    mexpr = "x {tl} - {th} {tl} - / 255 *".format(tl=td_lo - 0.0001, th=td_hi + 0.0001)
+    tl = max(thr_det * 0.75, 1.0) - 0.0001
+    th = max(thr_det, 1.0) + 0.0001
+    mexpr = f"x {tl} - {th} {tl} - / 255 *"
 
     if mode > 0:
-        deband_mask = _Build_gf3_range_mask(src_8, mode)
-        deband_mask = core.std.Expr([deband_mask], [mexpr])
-        deband_mask = core.rgvs.RemoveGrain(deband_mask, [22])
+        deband_mask = (
+            _Build_gf3_range_mask(src_8, radius=mode).std.Expr(mexpr).rgvs.RemoveGrain(22)
+        )
         if mode > 1:
-            deband_mask = core.std.Convolution(deband_mask, matrix=[1, 2, 1, 2, 4, 2, 1, 2, 1])
+            deband_mask = deband_mask.std.Convolution([1, 2, 1, 2, 4, 2, 1, 2, 1])
             if mode > 2:
-                deband_mask = core.std.Convolution(deband_mask, matrix=[1, 1, 1, 1, 1, 1, 1, 1, 1])
+                deband_mask = deband_mask.std.Convolution([1] * 9)
 
         return depth(deband_mask, PROC_DEPTH)
 
@@ -342,7 +341,6 @@ def adaptive_debandmask(
         scaling = yaml[zone]["scaling"]
 
         db_n = gradfun_mask(source=source, thr_det=thr_det, mode=db_mode)
-
         db_mask = adaptive_mix(clip=clip, f1=db_mask, f2=db_n, scaling=scaling, yuv=False)
 
     if db_expr:
@@ -490,9 +488,9 @@ def bm3d_(
 
     planes = split(clip)
 
-    planes[0] = BM3D(input=planes[0], sigma=bm_sigma, radius1=bm_radius)
-    planes[1] = smdegrain_(clip=planes[1], sm_thr=sm_thr, sm_pref_mode=sm_pref_mode)
-    planes[2] = smdegrain_(clip=planes[2], sm_thr=sm_thr, sm_pref_mode=sm_pref_mode)
+    planes[0] = BM3D(planes[0], sigma=bm_sigma, radius1=bm_radius)
+    planes[1] = smdegrain_(planes[1], sm_thr=sm_thr, sm_pref_mode=sm_pref_mode)
+    planes[2] = smdegrain_(planes[2], sm_thr=sm_thr, sm_pref_mode=sm_pref_mode)
 
     return join(planes)
 
@@ -567,11 +565,15 @@ def filt(
         # denoised
         if fset.dn_mode == "smdegrain":
             full_denoise = smdegrain_(
-                clip=src_denoise, sm_thr=fset.sm_thr, sm_pref_mode=fset.sm_pref_mode
+                clip=src_denoise,
+                sm_thr=fset.sm_thr,
+                sm_pref_mode=fset.sm_pref_mode,
             )
             if fset.dn_adaptive is not None:
                 full_denoise = adaptive_smdegrain(
-                    clip=clip16, smdegrain=full_denoise, yaml=fset.dn_adaptive
+                    clip=clip16,
+                    smdegrain=full_denoise,
+                    yaml=fset.dn_adaptive,
                 )
 
         elif fset.dn_mode == "bm3d":
@@ -588,6 +590,7 @@ def filt(
         # dn_pref
         if fset.dn_pref or fset.cs_mode:
             rt_mask_denoised = retinex_edgemask(denoised, sigma=fset.rt_sigma)
+
             if fset.dn_expr:
                 rt_mask_denoised_def = rt_mask_denoised
                 rt_mask_denoised = rt_mask_denoised.std.Expr(fset.dn_expr)
@@ -722,9 +725,9 @@ def filt(
 
     # adaptive_grain
     if out_mode == 1:
-        ag_mask = adaptive_grain(clip=filtered, luma_scaling=fset.ag_scaling, show_mask=True)
+        ag_mask = adaptive_grain(filtered, luma_scaling=fset.ag_scaling, show_mask=True)
     if fset.ag_str != 0:
-        grained = adaptive_grain(clip=filtered, luma_scaling=fset.ag_scaling, strength=fset.ag_str)
+        grained = adaptive_grain(filtered, luma_scaling=fset.ag_scaling, strength=fset.ag_str)
 
         if fset.ag_saveblack == 1:
             filtered = save_black(filtered, grained, threshold=0.06276)
@@ -807,11 +810,9 @@ def source(
 
 
 def average(clips: list[VideoNode]) -> VideoNode:
-
-    num_frames = [clip.num_frames for clip in clips]
-    clips = [clip.std.Trim(0, min(num_frames) - 1) for clip in clips]
-
-    return core.average.Mean(clips)
+    return core.average.Mean(
+        [clip.std.Trim(0, min([clip.num_frames for clip in clips]) - 1) for clip in clips]
+    )
 
 
 def out(
@@ -902,6 +903,7 @@ def _mask_resize(mask: VideoNode, format_src: VideoNode | None = None) -> VideoN
     #     mask_format = format_src.format.replace(color_family=GRAY, subsampling_w=0, subsampling_h=0)
     # else:
     #     mask_format = GRAY16
+
     mask_format = GRAY16
 
     if mask.format.color_family == RGB:
@@ -991,10 +993,9 @@ def diff_rescale_mask(source: VideoNode, dset: AASettings) -> VideoNode:
 
     clip = get_y(source) if source.format.num_planes != 1 else source
 
-    desc_w = hav.m4((source.width * dset.desc_h) / source.height)
     desc = Descale(
         src=clip,
-        width=desc_w,
+        width=hav.m4((source.width * dset.desc_h) / source.height),
         height=dset.desc_h,
         kernel=dset.kernel,
         b=dset.bic_b,
@@ -1028,8 +1029,7 @@ def diff_rescale_mask(source: VideoNode, dset: AASettings) -> VideoNode:
     if dset.resc_expr:
         mask = mask.std.Expr(dset.resc_expr)
 
-    source_depth = get_depth(source)
-    if get_depth(mask) != source_depth:
+    if get_depth(mask) != (source_depth := get_depth(source)):
         mask = depth(mask, source_depth)
 
     return mask
@@ -1134,7 +1134,6 @@ def qtgmc(clip: VideoNode, zone: str = "", **override: Any) -> VideoNode:
     qset = override_dc(qset, block="qtgmc", zone=zone, **override)
 
     device = get_edi3_mode().device
-    opencl = device != -1
 
     return hav.QTGMC(
         Input=clip,
@@ -1148,7 +1147,7 @@ def qtgmc(clip: VideoNode, zone: str = "", **override: Any) -> VideoNode:
         MatchEnhance=qset.match_enhance,
         MatchPreset=qset.preset,
         MatchPreset2=qset.preset,
-        opencl=opencl,
+        opencl=device != -1,
         device=device,
         Sharpness=qset.sharp,
         NoiseProcess=0,
@@ -1277,7 +1276,11 @@ def rfs_dehalo(
         mask_src = dehalo if dehset.mask_from_filtred else clip
 
     mask = outerline_mask(
-        mask_src, mode=dehset.mode, max_c=dehset.max_c, min_c=dehset.min_c, ext_mask=ext_mask
+        mask_src,
+        mode=dehset.mode,
+        max_c=dehset.max_c,
+        min_c=dehset.min_c,
+        ext_mask=ext_mask,
     )
     if out_mask:
         return mask
