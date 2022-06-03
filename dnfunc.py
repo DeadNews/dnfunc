@@ -71,6 +71,10 @@ def override_dc(data_class: T, block: str, zone: str = "", **override: Any) -> T
 ######
 
 
+class NumFramesError(Exception):
+    pass
+
+
 class Edi3Mode(NamedTuple):
     eedi3_mode: EEDI3Mode
     device: int
@@ -193,9 +197,12 @@ def aa(
         if f1.is_file():
             aa_lossless = source(f1)
 
-            assert aa_lossless.num_frames == clip.num_frames, TypeError(
-                f"{epname}_aa_lossless — {aa_lossless.num_frames}, clip — {clip.num_frames}"
-            )
+            if not (aa_lossless.num_frames == clip.num_frames):
+                raise NumFramesError(
+                    f"{epname}_aa_lossless — {aa_lossless.num_frames},"
+                    + f" clip — {clip.num_frames}"
+                )
+
             return aa_lossless
 
     aaset = AASettings()
@@ -287,11 +294,12 @@ def oped(
         else:
             ncoped_aa = filtr(ncoped_aa, ncoped)
 
-    assert oped_clip.num_frames == ncoped.num_frames == ncoped_aa.num_frames, TypeError(
-        f"{name}: {name}_titles — {oped_clip.num_frames}, "
-        + f"nc{name} — {ncoped.num_frames}, "
-        + f"nc{name}_aa — {ncoped_aa.num_frames}"
-    )
+    if not (oped_clip.num_frames == ncoped.num_frames == ncoped_aa.num_frames):
+        raise NumFramesError(
+            f"{name}: {name}_titles — {oped_clip.num_frames}, "
+            + f"nc{name} — {ncoped.num_frames}, "
+            + f"nc{name}_aa — {ncoped_aa.num_frames}"
+        )
 
     return save_titles(oped_clip=oped_clip, ncoped=ncoped, ncoped_aa=ncoped_aa)
 
