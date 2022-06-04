@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePath
+from shutil import which
 from typing import Any, Callable, Iterable, NamedTuple, TypeVar, Union
 
 import havsfunc as hav
@@ -18,17 +19,6 @@ VideoFunc1 = Callable[[VideoNode], VideoNode]
 VideoFunc2 = Callable[[VideoNode, VideoNode], VideoNode]
 
 PROC_DEPTH = 16  # processing_depth
-
-
-def lram() -> int:
-    """
-    Returns the RAM of a linux system; Required procps-ng
-    """
-    from os import popen
-
-    total_memory = popen("free -m").readlines()[1].split()[1]
-
-    return int(total_memory)
 
 
 def load_yaml(file_path: str) -> dict | None:
@@ -82,7 +72,7 @@ class Edi3Mode(NamedTuple):
 
 
 def get_edi3_mode() -> Edi3Mode:
-    if Path("/bin/nvidia-smi").exists():
+    if which("nvidia-smi") is not None:
         return Edi3Mode(
             eedi3_mode=EEDI3Mode.OPENCL,
             device=0,
