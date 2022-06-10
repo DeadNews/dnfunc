@@ -486,7 +486,12 @@ def _out_mask(mask: VideoNode) -> VideoNode:
 
 def smdegrain_(clip: VideoNode, sm_thr: int = 48, sm_pref_mode: int = 1) -> VideoNode:
 
-    sm_set = dict(prefilter=sm_pref_mode, tr=4, RefineMotion=True, contrasharp=False)
+    sm_set = {
+        "prefilter": sm_pref_mode,
+        "tr": 4,
+        "RefineMotion": True,
+        "contrasharp": False,
+    }
 
     if isinstance(sm_thr, int):
         return hav.SMDegrain(clip, thSAD=sm_thr, plane=4, chroma=True, **sm_set)
@@ -822,7 +827,7 @@ def chapt(epname: str, chaptname: str, fallback: str = "") -> int | None:
         return epchaps.get(chaptname, epchaps.get(fallback))
 
 
-def load_map(epname: str, mapname: str) -> Any | None:
+def load_map(epname: str, mapname: str) -> Any:
 
     maps = load_yaml("./maps.yaml")
 
@@ -1060,9 +1065,9 @@ def diff_rescale_mask(source: VideoNode, dset: AASettings) -> VideoNode:
     )
 
     upsc_set = (
-        dict(kernel=dset.kernel, a1=dset.bic_b, a2=dset.bic_c, taps=dset.taps)
+        {"kernel": dset.kernel, "a1": dset.bic_b, "a2": dset.bic_c, "taps": dset.taps}
         if dset.resc_bc
-        else dict(kernel=dset.kernel, a1=1 / 3, a2=1 / 3)
+        else {"kernel": dset.kernel, "a1": 1 / 3, "a2": 1 / 3}
     )
     upsc = Resize(src=desc, w=source.width, h=source.height, **upsc_set)
 
