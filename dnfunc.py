@@ -35,7 +35,12 @@ def load_yaml(file_path: str) -> dict | None:
 def override_dc(data_class: T, block: str, zone: str = "", **override: Any) -> T:
     """
     Override default data_class params
-    default -> yaml main -> yaml zone -> func params
+
+    Configuration preference order:
+    1. func params
+    2. yaml zone
+    3. yaml main
+    4. default
     """
     settings = load_yaml("./settings.yaml")
 
