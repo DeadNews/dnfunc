@@ -26,10 +26,8 @@ def load_yaml(file_path: str) -> dict | None:
     Load yaml settings
     """
     f1 = Path(file_path)
-    if f1.is_file():
-        return safe_load(f1.read_text())
-    else:
-        return None
+
+    return safe_load(f1.read_text()) if f1.is_file() else None
 
 
 def override_dc(data_class: T, block: str, zone: str = "", **override: Any) -> T:
@@ -192,10 +190,10 @@ def aa(
         if f1.is_file():
             aa_lossless = source(f1)
 
-            if not (aa_lossless.num_frames == clip.num_frames):
+            if aa_lossless.num_frames != clip.num_frames:
                 raise NumFramesError(
-                    f"{epname}_aa_lossless — {aa_lossless.num_frames},"
-                    + f" clip — {clip.num_frames}"
+                    f"{epname}_aa_lossless — {aa_lossless.num_frames}, "
+                    f"clip — {clip.num_frames}"
                 )
 
             return aa_lossless
@@ -272,12 +270,11 @@ def oped(
     f1 = Path(f"./temp/{name}_aa_lossless.mp4")
     if f1.is_file():
         ncoped_aa = source(f1).std.Trim(offset, ncoped_end)
+    elif edgefix:
+        ncoped_ef = edgefix(ncoped_aa_src)
+        ncoped_aa = aa(ncoped_ef, zone=zone)
     else:
-        if edgefix:
-            ncoped_ef = edgefix(ncoped_aa_src)
-            ncoped_aa = aa(ncoped_ef, zone=zone)
-        else:
-            ncoped_aa = aa(ncoped_aa_src, zone=zone)
+        ncoped_aa = aa(ncoped_aa_src, zone=zone)
 
     if filtr:
         if input_aa:
@@ -292,8 +289,8 @@ def oped(
     if not (oped_clip.num_frames == ncoped.num_frames == ncoped_aa.num_frames):
         raise NumFramesError(
             f"{name}: {name}_titles — {oped_clip.num_frames}, "
-            + f"nc{name} — {ncoped.num_frames}, "
-            + f"nc{name}_aa — {ncoped_aa.num_frames}"
+            f"nc{name} — {ncoped.num_frames}, "
+            f"nc{name}_aa — {ncoped_aa.num_frames}"
         )
 
     return save_titles(oped_clip=oped_clip, ncoped=ncoped, ncoped_aa=ncoped_aa)
@@ -637,16 +634,17 @@ def filt(
                 rt_mask_denoised_def = rt_mask_denoised
                 rt_mask_denoised = rt_mask_denoised.std.Expr(fset.dn_expr)
 
-            if not fset.dn_pref_scaling:
-                rt_mask_mix = rt_mask_denoised
-            else:
-                rt_mask_mix = adaptive_mix(
+            rt_mask_mix = (
+                adaptive_mix(
                     clip=clip16,
                     f1=rt_mask_clip16,
                     f2=rt_mask_denoised,
                     scaling=fset.dn_pref_scaling,
                     yuv=False,
                 )
+                if fset.dn_pref_scaling
+                else rt_mask_denoised
+            )
 
             if fset.dn_pref_mul:
                 rt_mask_denoised_x2 = smdegrain_(
@@ -668,8 +666,8 @@ def filt(
                     full_denoise, clip16, mask=rt_mask_mix, yuv=True
                 )
 
-                if fset.dn_pref:
-                    denoised = denoised_pref
+        if fset.dn_pref:
+            denoised = denoised_pref
 
         # dn_save_uv
         if fset.dn_save_uv:
@@ -842,7 +840,7 @@ def load_map(epname: str, mapname: str) -> Any:
 def fname(file: str, aa_mode: bool = False) -> str:
     f1 = PurePath(file)
 
-    return f1.stem[0:-3] if aa_mode else f1.stem
+    return f1.stem[:-3] if aa_mode else f1.stem
 
 
 def source(
@@ -869,7 +867,7 @@ def source(
 
 
 def average(clips: list[VideoNode]) -> VideoNode:
-    min_num_frames = min([clip.num_frames for clip in clips])
+    min_num_frames = min(clip.num_frames for clip in clips)
 
     return core.average.Mean([clip.std.Trim(0, min_num_frames - 1) for clip in clips])
 
@@ -1009,7 +1007,7 @@ def rfs_color(
 
     replaced = masked_merge(f1, f2, mask=mask, yuv=False)
 
-    return replaced if not maps else rfs(f1, replaced, maps)
+    return rfs(f1, replaced, maps) if maps else replaced
 
 
 def image_mask(maskname: str, format_src: VideoNode) -> VideoNode:
@@ -1028,7 +1026,7 @@ def rfs_image(
     mask = image_mask(maskname, format_src=mrgc)
     replaced = masked_merge(mrgc, epis, mask=mask, yuv=yuv)
 
-    return replaced if not maps else rfs(mrgc, replaced, maps)
+    return rfs(mrgc, replaced, maps) if maps else replaced
 
 
 def rfs_diff(
@@ -1046,7 +1044,7 @@ def rfs_diff(
 
     replaced = masked_merge(mrgc, epis, mask=mask, yuv=yuv)
 
-    return replaced if not maps else rfs(mrgc, replaced, maps)
+    return rfs(mrgc, replaced, maps) if maps else replaced
 
 
 def diff_rescale_mask(source: VideoNode, dset: AASettings) -> VideoNode:
@@ -1122,7 +1120,7 @@ def rfs_resc(
 
     replaced = masked_merge(mrgc, epis, mask=mask)
 
-    return replaced if not maps else rfs(mrgc, replaced, maps)
+    return rfs(mrgc, replaced, maps) if maps else replaced
 
 
 def _hard(clip: VideoNode, mthr: int, yuv: bool = False) -> VideoNode:
@@ -1293,7 +1291,7 @@ def outerline_mask(
     ext_mask: VideoNode | None = None,
 ) -> VideoNode:
 
-    mask = ext_mask if ext_mask else edge_detect(clip, mode=mode)
+    mask = ext_mask or edge_detect(clip, mode=mode)
 
     mask_outer = iterate(mask, function=core.std.Maximum, count=max_c)
     mask_inner = mask.std.Inflate()
@@ -1354,7 +1352,7 @@ def rfs_dehalo(
 
     replaced = masked_merge(clip, dehalo, mask=mask, yuv=False)
 
-    return replaced if not maps else rfs(clip, replaced, maps)
+    return rfs(clip, replaced, maps) if maps else replaced
 
 
 def dehalo_chroma(clip: VideoNode, zone: str = "") -> VideoNode:
@@ -1406,7 +1404,7 @@ def rfs_repair(
 
     replaced = masked_merge(clip, repair, mask=mask, yuv=False)
 
-    return replaced if not maps else rfs(clip, replaced, maps)
+    return rfs(clip, replaced, maps) if maps else replaced
 
 
 @dataclass(frozen=True)
@@ -1426,7 +1424,7 @@ def rfs_linedark(
 
     replaced = hav.FastLineDarkenMOD(clip, **ldset.linedark_args)
 
-    return replaced if not maps else rfs(clip, replaced, maps)
+    return rfs(clip, replaced, maps) if maps else replaced
 
 
 @dataclass(frozen=True)
@@ -1462,7 +1460,7 @@ def rfs_sharp(
 
     replaced = masked_merge(clip, sharp, mask=mask, yuv=shset.yuv)
 
-    return replaced if not maps else rfs(clip, replaced, maps)
+    return rfs(clip, replaced, maps) if maps else replaced
 
 
 @dataclass
@@ -1607,12 +1605,10 @@ def crop(
 
 
 def to60fps(clip: VideoNode, mode: str = "svp") -> VideoNode:
+    """
+    http://avisynth.org.ru/mvtools/mvtools2.html
+    """
     if mode == "mv":
-        dst_fps_num = 60
-        dst_fps_den = 1
-        """
-        http://avisynth.org.ru/mvtools/mvtools2.html
-        """
         sup = core.mv.Super(clip, pel=2, sharp=2, rfilter=4)
         bvec = core.mv.Analyse(
             sup,
@@ -1637,9 +1633,7 @@ def to60fps(clip: VideoNode, mode: str = "svp") -> VideoNode:
             overlap=4,
         )
 
-        smooth = core.mv.FlowFPS(
-            clip, sup, bvec, fvec, num=dst_fps_num, den=dst_fps_den
-        )
+        smooth = core.mv.FlowFPS(clip, sup, bvec, fvec, num=60, den=1)
 
     if mode == "svp":
         if get_depth(clip) != 8:
@@ -1795,16 +1789,15 @@ def rescale_(
     if ref_clip is not None:
         dx = ref_clip.width
         dy = ref_clip.height
-    else:
-        if width and height:
-            dx = width
-            dy = height
-        elif height:
-            dx = hav.m4((clip.width * height) / clip.height)
-            dy = height
-        elif width:
-            dx = width
-            dy = hav.m4((clip.height * width) / clip.width)
+    elif width and height:
+        dx = width
+        dy = height
+    elif height:
+        dx = hav.m4((clip.width * height) / clip.height)
+        dy = height
+    elif width:
+        dx = width
+        dy = hav.m4((clip.height * width) / clip.width)
 
     if mode == "insane_aa":
         aaset = AASettings()
@@ -1827,12 +1820,10 @@ def rescale_(
             beta=aaset.beta,
             gamma=aaset.gamma,
         )
-
-    elif mode == "lanczos":
-        return clip.resize.Lanczos(dx, dy, filter_param_a=2)
-
     elif mode == "jinc":
         return clip.jinc.JincResize(dx, dy)
+    elif mode == "lanczos":
+        return clip.resize.Lanczos(dx, dy, filter_param_a=2)
 
 
 def downscale(clip: VideoNode, desc_h: int = 720, to420: bool = False) -> VideoNode:
