@@ -505,14 +505,13 @@ def smdegrain_(clip: VideoNode, sm_thr: int = 48, sm_pref_mode: int = 1) -> Vide
         if clip.format.num_planes == 1:
             return hav.SMDegrain(clip, thSAD=sm_thr[0], **sm_set)
 
-        else:
-            planes = split(clip)
+        planes = split(clip)
 
-            planes[0] = hav.SMDegrain(planes[0], thSAD=sm_thr[0], **sm_set)
-            planes[1] = hav.SMDegrain(planes[1], thSAD=sm_thr[1], **sm_set)
-            planes[2] = hav.SMDegrain(planes[2], thSAD=sm_thr[2], **sm_set)
+        planes[0] = hav.SMDegrain(planes[0], thSAD=sm_thr[0], **sm_set)
+        planes[1] = hav.SMDegrain(planes[1], thSAD=sm_thr[1], **sm_set)
+        planes[2] = hav.SMDegrain(planes[2], thSAD=sm_thr[2], **sm_set)
 
-            return join(planes)
+        return join(planes)
 
 
 def bm3d_(
@@ -824,10 +823,10 @@ def chapt(epname: str, chaptname: str, fallback: str = "") -> int | None:
 
     if chapters is None:
         return None
-    else:
-        epchaps = chapters[epname]
 
-        return epchaps.get(chaptname, epchaps.get(fallback))
+    epchaps = chapters[epname]
+
+    return epchaps.get(chaptname, epchaps.get(fallback))
 
 
 def load_map(epname: str, mapname: str) -> Any:
@@ -953,10 +952,10 @@ def rfs(f1: VideoNode, f2: VideoNode, maps: Maps) -> VideoNode:
 
     if isinstance(maps, str):
         return core.remap.Rfs(f1, f2, mappings=maps)
-    else:
-        from lvsfunc import rfs as lrfs
 
-        return lrfs(f1, f2, ranges=maps)
+    from lvsfunc import rfs as lrfs
+
+    return lrfs(f1, f2, ranges=maps)
 
 
 def _mask_resize(mask: VideoNode, format_src: VideoNode | None = None) -> VideoNode:
@@ -1140,24 +1139,22 @@ def hard(clip: VideoNode, mthr: int, zone: str = "", **override: Any) -> VideoNo
     yuv = yuv if (yuv := override.get("yuv")) is not None else False
 
     if zone is None and override.get("desc_h") is None:
-        hard = _hard(clip, mthr=mthr, yuv=yuv)
-    else:
-        revset = AASettings()
-        revset = override_dc(revset, block="aa", zone=zone, **override)
+        return _hard(clip, mthr=mthr, yuv=yuv)
 
-        revert = revert_upscale(
-            clip=clip,
-            descale_strength=revset.desc_str,
-            descale_height=revset.desc_h,
-            kernel=revset.kernel,
-            bic_b=revset.bic_b,
-            bic_c=revset.bic_c,
-        )
+    revset = AASettings()
+    revset = override_dc(revset, block="aa", zone=zone, **override)
 
-        hard_aa = _hard(revert, mthr=mthr, yuv=yuv)
-        hard = rescale_(hard_aa, mode="insaneAA", ref_clip=clip)
+    revert = revert_upscale(
+        clip=clip,
+        descale_strength=revset.desc_str,
+        descale_height=revset.desc_h,
+        kernel=revset.kernel,
+        bic_b=revset.bic_b,
+        bic_c=revset.bic_c,
+    )
 
-    return hard
+    hard_aa = _hard(revert, mthr=mthr, yuv=yuv)
+    return rescale_(hard_aa, mode="insaneAA", ref_clip=clip)
 
 
 def rfs_hard(
@@ -1235,52 +1232,50 @@ def rfs_qtgmc(
     return rfs(mrgc, stabilize, maps)
 
 
+def get_kirsch2_mask(clip_y: VideoNode) -> VideoNode:
+    n = core.std.Convolution(
+        clip_y, [5, 5, 5, -3, 0, -3, -3, -3, -3], divisor=3, saturate=False
+    )
+    nw = core.std.Convolution(
+        clip_y, [5, 5, -3, 5, 0, -3, -3, -3, -3], divisor=3, saturate=False
+    )
+    w = core.std.Convolution(
+        clip_y, [5, -3, -3, 5, 0, -3, 5, -3, -3], divisor=3, saturate=False
+    )
+    sw = core.std.Convolution(
+        clip_y, [-3, -3, -3, 5, 0, -3, 5, 5, -3], divisor=3, saturate=False
+    )
+    s = core.std.Convolution(
+        clip_y, [-3, -3, -3, -3, 0, -3, 5, 5, 5], divisor=3, saturate=False
+    )
+    se = core.std.Convolution(
+        clip_y, [-3, -3, -3, -3, 0, 5, -3, 5, 5], divisor=3, saturate=False
+    )
+    e = core.std.Convolution(
+        clip_y, [-3, -3, 5, -3, 0, 5, -3, -3, 5], divisor=3, saturate=False
+    )
+    ne = core.std.Convolution(
+        clip_y, [-3, 5, 5, -3, 0, 5, -3, -3, -3], divisor=3, saturate=False
+    )
+    return core.std.Expr(
+        [n, nw, w, sw, s, se, e, ne],
+        ["x y max z max a max b max c max d max e max"],
+    )
+
+
 def edge_detect(clip: VideoNode, mode: str, expr: str = "") -> VideoNode:
     clip_y = get_y(clip)
 
-    if mode == "sobel":
-        mask = core.std.Sobel(clip_y)
-
+    if mode == "fine2":
+        mask = hav.FineDehalo2(clip_y, showmask=1)
     elif mode == "kirsch":
         mask = kirsch(clip_y)
-
     elif mode == "kirsch2":
-        n = core.std.Convolution(
-            clip_y, [5, 5, 5, -3, 0, -3, -3, -3, -3], divisor=3, saturate=False
-        )
-        nw = core.std.Convolution(
-            clip_y, [5, 5, -3, 5, 0, -3, -3, -3, -3], divisor=3, saturate=False
-        )
-        w = core.std.Convolution(
-            clip_y, [5, -3, -3, 5, 0, -3, 5, -3, -3], divisor=3, saturate=False
-        )
-        sw = core.std.Convolution(
-            clip_y, [-3, -3, -3, 5, 0, -3, 5, 5, -3], divisor=3, saturate=False
-        )
-        s = core.std.Convolution(
-            clip_y, [-3, -3, -3, -3, 0, -3, 5, 5, 5], divisor=3, saturate=False
-        )
-        se = core.std.Convolution(
-            clip_y, [-3, -3, -3, -3, 0, 5, -3, 5, 5], divisor=3, saturate=False
-        )
-        e = core.std.Convolution(
-            clip_y, [-3, -3, 5, -3, 0, 5, -3, -3, 5], divisor=3, saturate=False
-        )
-        ne = core.std.Convolution(
-            clip_y, [-3, 5, 5, -3, 0, 5, -3, -3, -3], divisor=3, saturate=False
-        )
-        mask = core.std.Expr(
-            [n, nw, w, sw, s, se, e, ne],
-            ["x y max z max a max b max c max d max e max"],
-        )
+        mask = get_kirsch2_mask(clip_y)
+    elif mode == "sobel":
+        mask = core.std.Sobel(clip_y)
 
-    elif mode == "fine2":
-        mask = hav.FineDehalo2(clip_y, showmask=1)
-
-    if expr:
-        mask = mask.std.Expr(expr)
-
-    return mask
+    return mask.std.Expr(expr) if expr else mask
 
 
 def outerline_mask(
@@ -1503,54 +1498,52 @@ def edgefix(
                 radius=edset.radius,
             )
 
-        else:
-            # yuv
-            top = edset.to_list(edset.top)
-            bottom = edset.to_list(edset.bottom)
-            left = edset.to_list(edset.left)
-            right = edset.to_list(edset.right)
-            radius = edset.to_list(edset.radius)
+        # yuv
+        top = edset.to_list(edset.top)
+        bottom = edset.to_list(edset.bottom)
+        left = edset.to_list(edset.left)
+        right = edset.to_list(edset.right)
+        radius = edset.to_list(edset.radius)
 
-            planes = split(epis)
+        planes = split(epis)
 
-            if not edset.crop_args:
-                y = planes[0].edgefixer.Continuity(
-                    top=top[0],
-                    bottom=bottom[0],
-                    left=left[0],
-                    right=right[0],
-                    radius=radius[0],
-                )
-            else:
-                y = (
-                    planes[0]
-                    .std.Crop(**edset.crop_args)
-                    .edgefixer.Continuity(
-                        top=top[0],
-                        bottom=bottom[0],
-                        left=left[0],
-                        right=right[0],
-                        radius=radius[0],
-                    )
-                    .std.AddBorders(**edset.crop_args)
-                )
-
-            u = planes[1].edgefixer.Continuity(
-                top=top[1],
-                bottom=bottom[1],
-                left=left[1],
-                right=right[1],
-                radius=radius[1],
+        y = (
+            planes[0]
+            .std.Crop(**edset.crop_args)
+            .edgefixer.Continuity(
+                top=top[0],
+                bottom=bottom[0],
+                left=left[0],
+                right=right[0],
+                radius=radius[0],
             )
-            v = planes[2].edgefixer.Continuity(
-                top=top[2],
-                bottom=bottom[2],
-                left=left[2],
-                right=right[2],
-                radius=radius[2],
+            .std.AddBorders(**edset.crop_args)
+            if edset.crop_args
+            else planes[0].edgefixer.Continuity(
+                top=top[0],
+                bottom=bottom[0],
+                left=left[0],
+                right=right[0],
+                radius=radius[0],
             )
+        )
 
-            return join([y, u, v])
+        u = planes[1].edgefixer.Continuity(
+            top=top[1],
+            bottom=bottom[1],
+            left=left[1],
+            right=right[1],
+            radius=radius[1],
+        )
+        v = planes[2].edgefixer.Continuity(
+            top=top[2],
+            bottom=bottom[2],
+            left=left[2],
+            right=right[2],
+            radius=radius[2],
+        )
+
+        return join([y, u, v])
 
     edset = EdgeFixSettings()
     edset = override_dc(edset, block="edgefix", zone=zone, **override)
@@ -1604,63 +1597,65 @@ def crop(
     return (epis, _crop)
 
 
-def to60fps(clip: VideoNode, mode: str = "svp") -> VideoNode:
+def to60fps_mv(clip: VideoNode) -> VideoNode:
     """
     http://avisynth.org.ru/mvtools/mvtools2.html
     """
+    sup = core.mv.Super(clip, pel=2, sharp=2, rfilter=4)
+    bvec = core.mv.Analyse(
+        sup,
+        blksize=8,
+        isb=True,
+        chroma=True,
+        search=3,
+        searchparam=1,
+        truemotion=True,
+        dct=1,
+        overlap=4,
+    )
+    fvec = core.mv.Analyse(
+        sup,
+        blksize=8,
+        isb=False,
+        chroma=True,
+        search=3,
+        searchparam=1,
+        truemotion=True,
+        dct=1,
+        overlap=4,
+    )
+    return core.mv.FlowFPS(clip, sup, bvec, fvec, num=60, den=1)
+
+
+def to60fps_svp(clip: VideoNode) -> VideoNode:
+    clip_p8 = depth(clip, 8) if get_depth(clip) != 8 else clip
+
+    super_params = "{gpu: 1, pel: 2}"
+    analyse_params = (
+        "{gpu: 1, block: {w:8, overlap:3}, refine: [{thsad:1000, search:{type:3}}]}"
+    )
+    smoothfps_params = (
+        "{rate: {num: 5, den: 2}, algo: 2, gpuid: 0}"  # (24000/1001)*(1001/400)=60
+    )
+
+    sup = core.svp1.Super(clip_p8, super_params)
+    vectors = core.svp1.Analyse(sup["clip"], sup["data"], clip_p8, analyse_params)
+
+    return core.svp2.SmoothFps(
+        clip,
+        sup["clip"],
+        sup["data"],
+        vectors["clip"],
+        vectors["data"],
+        smoothfps_params,
+    )
+
+
+def to60fps(clip: VideoNode, mode: str = "svp") -> VideoNode:
     if mode == "mv":
-        sup = core.mv.Super(clip, pel=2, sharp=2, rfilter=4)
-        bvec = core.mv.Analyse(
-            sup,
-            blksize=8,
-            isb=True,
-            chroma=True,
-            search=3,
-            searchparam=1,
-            truemotion=True,
-            dct=1,
-            overlap=4,
-        )
-        fvec = core.mv.Analyse(
-            sup,
-            blksize=8,
-            isb=False,
-            chroma=True,
-            search=3,
-            searchparam=1,
-            truemotion=True,
-            dct=1,
-            overlap=4,
-        )
-
-        smooth = core.mv.FlowFPS(clip, sup, bvec, fvec, num=60, den=1)
-
-    if mode == "svp":
-        if get_depth(clip) != 8:
-            clip_p8 = depth(clip, 8)
-        else:
-            clip_p8 = clip
-
-        super_params = "{gpu: 1, pel: 2}"
-        analyse_params = (
-            "{gpu: 1, block: {w:8, overlap:3}, refine: [{thsad:1000, search:{type:3}}]}"
-        )
-        smoothfps_params = (
-            "{rate: {num: 5, den: 2}, algo: 2, gpuid: 0}"  # (24000/1001)*(1001/400)=60
-        )
-
-        sup = core.svp1.Super(clip_p8, super_params)
-        vectors = core.svp1.Analyse(sup["clip"], sup["data"], clip_p8, analyse_params)
-        smooth = core.svp2.SmoothFps(
-            clip,
-            sup["clip"],
-            sup["data"],
-            vectors["clip"],
-            vectors["data"],
-            smoothfps_params,
-        )
-
-    return smooth
+        return to60fps_mv(clip)
+    elif mode == "svp":
+        return to60fps_svp(clip)
 
 
 def chromashift(clip: VideoNode, cx: int = 0, cy: int = 0) -> VideoNode:
@@ -1727,20 +1722,27 @@ def adaptive_chromashift(
 
         out = f2 if condition else f1
 
-        if not pw_mode:
-            return out
-        else:
-            sign = "fix" if condition else "clip"
+        return add_caption(n=n, f=f, out=out, condition=condition) if pw_mode else out
 
-            lines = []
-            if pw_mode == 2:
-                lines.append(f"Frame avg: {f[0].props.PlaneStatsAverage}")
-                lines.append(f"Frame avg: {f[1].props.PlaneStatsAverage}")
+    def add_caption(
+        n: int,
+        f: VideoFrame,
+        out: VideoNode,
+        condition: bool,
+    ) -> VideoNode:
 
-            lines.append(sign)
+        lines: list[str] = []
+        if pw_mode == 2:
+            lines.extend(
+                (
+                    f"Frame avg: {f[0].props.PlaneStatsAverage}",
+                    f"Frame avg: {f[1].props.PlaneStatsAverage}",
+                )
+            )
+        lines.append("fix" if condition else "clip")
 
-            style = "Fira Code,20,&H0000FFFF,&H00000000,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,2,0,7,10,10,10,1"
-            return out.sub.Subtitle("\n".join(lines), start=n, end=n + 1, style=style)
+        style = "Fira Code,20,&H0000FFFF,&H00000000,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,2,0,7,10,10,10,1"
+        return out.sub.Subtitle("\n".join(lines), start=n, end=n + 1, style=style)
 
     def _adaptive_chromashift(
         clip: VideoNode,
@@ -1835,14 +1837,14 @@ def downscale(clip: VideoNode, desc_h: int = 720, to420: bool = False) -> VideoN
 
     if not to420:
         return clip.resize.Spline36(desc_w, desc_h)
-    else:
-        planes = split(clip)
 
-        planes[0] = planes[0].resize.Spline36(desc_w, desc_h)
-        planes[1] = planes[1].resize.Spline36(desc_w / 2, desc_h / 2)
-        planes[2] = planes[2].resize.Spline36(desc_w / 2, desc_h / 2)
+    planes = split(clip)
 
-        return join(planes)
+    planes[0] = planes[0].resize.Spline36(desc_w, desc_h)
+    planes[1] = planes[1].resize.Spline36(desc_w / 2, desc_h / 2)
+    planes[2] = planes[2].resize.Spline36(desc_w / 2, desc_h / 2)
+
+    return join(planes)
 
 
 def rfs_black_crop(
