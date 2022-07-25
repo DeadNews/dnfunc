@@ -1674,7 +1674,7 @@ def chromashift(clip: VideoNode, cx: int = 0, cy: int = 0) -> VideoNode:
 def adaptive_chromashift(
     clip: VideoNode,
     fix: VideoNode,
-    pw_mode: bool = False,
+    pw_mode: int = 0,
 ) -> VideoNode:
     """
     Chromashift with comparisons for floating chromashift
@@ -1744,11 +1744,7 @@ def adaptive_chromashift(
         style = "Fira Code,20,&H0000FFFF,&H00000000,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,2,0,7,10,10,10,1"
         return out.sub.Subtitle("\n".join(lines), start=n, end=n + 1, style=style)
 
-    def _adaptive_chromashift(
-        clip: VideoNode,
-        fix: VideoNode,
-        pw_mode: bool = False,
-    ) -> VideoNode:
+    def _adaptive_chromashift(clip: VideoNode, fix: VideoNode) -> VideoNode:
         from functools import partial
 
         diff_def = make_diff(clip)
@@ -1775,7 +1771,7 @@ def adaptive_chromashift(
             prop_src=[s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13],
         )
 
-    return _adaptive_chromashift(clip, fix, pw_mode=pw_mode)
+    return _adaptive_chromashift(clip, fix)
 
 
 def rescale_(
