@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePath
 from shutil import which
-from typing import Any, Callable, Iterable, NamedTuple, TypeVar, Union
+from typing import Any, Callable, NamedTuple, TypeVar, Union
 
 import havsfunc as hav
 from insaneAA import ClipMode, EEDI3Mode, NNEDI3Mode, insaneAA, rescale, revert_upscale
@@ -570,7 +571,7 @@ class FilterSettings:
     ag_saveblack_tolerance: int = 2
 
 
-def filt(
+def filt(  # noqa: C901
     mrgc: VideoNode,
     zone: str = "",
     out_mode: int = 0,
@@ -967,10 +968,11 @@ def _mask_resize(mask: VideoNode, format_src: VideoNode | None = None) -> VideoN
 
     mask_format = GRAY16
 
-    if mask.format.color_family == RGB:
-        return core.resize.Point(mask, matrix_s="709", format=mask_format)
-    else:
-        return core.resize.Point(mask, format=mask_format)
+    return (
+        mask.resize.Point(matrix_s="709", format=mask_format)
+        if mask.format.color_family == RGB
+        else mask.resize.Point(format=mask_format)
+    )
 
 
 def color_mask(
@@ -983,7 +985,7 @@ def color_mask(
     if get_depth(mask_src) != 8:
         mask_src = depth(mask_src, 8)
 
-    mask = core.tcm.TColorMask(mask_src, colors=color, tolerance=tolerance)
+    mask = mask_src.tcm.TColorMask(colors=color, tolerance=tolerance)
 
     return _mask_resize(mask, format_src)
 
