@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
+from functools import partial
 from pathlib import Path, PurePath
 from shutil import which
 from typing import Any, Callable, NamedTuple, TypeVar, Union
@@ -420,18 +421,16 @@ def save_black(
     stolen from https://github.com/Irrational-Encoding-Wizardry/lvsfunc/blob/master/lvsfunc.py
     return filtered when avg exceeds the threshold
     """
-    from functools import partial
 
     def _diff(
         n: int, f: VideoFrame, clip: VideoNode, filtered: VideoNode, threshold: float
     ) -> VideoNode:
         return filtered if f.props.PlaneStatsAverage > threshold else clip
 
-    avg = core.std.PlaneStats(clip)
     return core.std.FrameEval(
         clip=clip,
         eval=partial(_diff, clip=clip, filtered=filtered, threshold=threshold),
-        prop_src=avg,
+        prop_src=core.std.PlaneStats(clip),
     )
 
 
@@ -1747,8 +1746,6 @@ def adaptive_chromashift(
         return out.sub.Subtitle("\n".join(lines), start=n, end=n + 1, style=style)
 
     def _adaptive_chromashift(clip: VideoNode, fix: VideoNode) -> VideoNode:
-        from functools import partial
-
         diff_def = make_diff(clip)
         diff_fix = make_diff(fix)
 
