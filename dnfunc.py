@@ -307,7 +307,7 @@ def gradfun_mask(source: VideoNode, thr_det: float = 1, mode: int = 3) -> VideoN
     """
     Stolen from fvsfunc
     """
-    from muvsfunc import _Build_gf3_range_mask
+    from muvsfunc import _Build_gf3_range_mask as gf3_range_mask  # noqa: N813
 
     src_y = get_y(source)
     src_8 = depth(src_y, 8)
@@ -317,11 +317,7 @@ def gradfun_mask(source: VideoNode, thr_det: float = 1, mode: int = 3) -> VideoN
     mexpr = f"x {tl} - {th} {tl} - / 255 *"
 
     if mode > 0:
-        deband_mask = (
-            _Build_gf3_range_mask(src_8, radius=mode)
-            .std.Expr(mexpr)
-            .rgvs.RemoveGrain(22)
-        )
+        deband_mask = gf3_range_mask(src_8, radius=mode).std.Expr(mexpr).rgvs.RemoveGrain(22)
         if mode > 1:
             deband_mask = deband_mask.std.Convolution([1, 2, 1, 2, 4, 2, 1, 2, 1])
             if mode > 2:
@@ -338,9 +334,7 @@ def adaptive_mix(
     yuv: bool = False,
 ) -> VideoNode:
 
-    adaptive_mask = adaptive_grain(
-        clip=clip, luma_scaling=scaling, show_mask=True
-    ).std.Invert()
+    adaptive_mask = adaptive_grain(clip=clip, luma_scaling=scaling, show_mask=True).std.Invert()
 
     return masked_merge(f1, f2, mask=adaptive_mask, yuv=yuv)
 
@@ -382,9 +376,7 @@ def adaptive_smdegrain(clip: VideoNode, smdegrain: VideoNode, yaml: dict) -> Vid
 
         dn_n = smdegrain_(clip=clip, sm_thr=sm_thr, sm_pref_mode=sm_pref_mode)
 
-        smdegrain = adaptive_mix(
-            clip=clip, f1=smdegrain, f2=dn_n, scaling=scaling, yuv=True
-        )
+        smdegrain = adaptive_mix(clip=clip, f1=smdegrain, f2=dn_n, scaling=scaling, yuv=True)
 
     return smdegrain
 
@@ -661,18 +653,14 @@ def filt(  # noqa: C901
                     )
 
             if fset.dn_pref or fset.db_gf_mode == 3:
-                denoised_pref = masked_merge(
-                    full_denoise, clip16, mask=rt_mask_mix, yuv=True
-                )
+                denoised_pref = masked_merge(full_denoise, clip16, mask=rt_mask_mix, yuv=True)
 
         if fset.dn_pref:
             denoised = denoised_pref
 
         # dn_save_uv
         if fset.dn_save_uv:
-            denoised = save_uv_unique_lines(
-                clip=denoised, source=clip16, sigma=fset.rt_sigma
-            )
+            denoised = save_uv_unique_lines(clip=denoised, source=clip16, sigma=fset.rt_sigma)
 
         # contrasharp
         if fset.cs_mode:
@@ -699,9 +687,7 @@ def filt(  # noqa: C901
                     cs_mask_merge = cs_mask
                 elif fset.cs_merge == 2:
                     cs_mask_merge = cs_mask.std.Inflate()
-                denoised = masked_merge(
-                    denoised, denoised_expr, mask=cs_mask_merge, yuv=True
-                )
+                denoised = masked_merge(denoised, denoised_expr, mask=cs_mask_merge, yuv=True)
 
     if fset.db_thr == 0:
         debanded = denoised
@@ -722,9 +708,7 @@ def filt(  # noqa: C901
         elif fset.db_gf_mode == 4:
             gradfun_src = full_denoise
 
-        db_mask = gradfun_mask(
-            source=gradfun_src, thr_det=fset.db_thr, mode=fset.db_mode
-        )
+        db_mask = gradfun_mask(source=gradfun_src, thr_det=fset.db_thr, mode=fset.db_mode)
 
         if out_mode == 2:
             db_mask_gradfun = db_mask
@@ -766,21 +750,15 @@ def filt(  # noqa: C901
             rt_mask_afterdb = rt_mask_denoised_x2
 
         if fset.db_pref:
-            filtered = masked_merge(
-                debanded, denoised, mask=rt_mask_afterdb, yuv=fset.db_yuv
-            )
+            filtered = masked_merge(debanded, denoised, mask=rt_mask_afterdb, yuv=fset.db_yuv)
         else:
-            filtered = masked_merge(
-                debanded, clip16, mask=rt_mask_afterdb, yuv=fset.db_yuv
-            )
+            filtered = masked_merge(debanded, clip16, mask=rt_mask_afterdb, yuv=fset.db_yuv)
 
     # adaptive_grain
     if out_mode == 1:
         ag_mask = adaptive_grain(filtered, luma_scaling=fset.ag_scaling, show_mask=True)
     if fset.ag_str != 0:
-        grained = adaptive_grain(
-            filtered, luma_scaling=fset.ag_scaling, strength=fset.ag_str
-        )
+        grained = adaptive_grain(filtered, luma_scaling=fset.ag_scaling, strength=fset.ag_str)
 
         if fset.ag_saveblack == 1:
             filtered = save_black(filtered, grained, threshold=0.06276)
@@ -999,9 +977,7 @@ def rfs_color(
     maps: Maps | None = None,
 ) -> VideoNode:
 
-    mask = color_mask(
-        mask_src=mask_src, format_src=f1, color=color, tolerance=tolerance
-    )
+    mask = color_mask(mask_src=mask_src, format_src=f1, color=color, tolerance=tolerance)
     if out_mask:
         return mask
 
@@ -1234,30 +1210,14 @@ def rfs_qtgmc(
 
 
 def get_kirsch2_mask(clip_y: VideoNode) -> VideoNode:
-    n = core.std.Convolution(
-        clip_y, [5, 5, 5, -3, 0, -3, -3, -3, -3], divisor=3, saturate=False
-    )
-    nw = core.std.Convolution(
-        clip_y, [5, 5, -3, 5, 0, -3, -3, -3, -3], divisor=3, saturate=False
-    )
-    w = core.std.Convolution(
-        clip_y, [5, -3, -3, 5, 0, -3, 5, -3, -3], divisor=3, saturate=False
-    )
-    sw = core.std.Convolution(
-        clip_y, [-3, -3, -3, 5, 0, -3, 5, 5, -3], divisor=3, saturate=False
-    )
-    s = core.std.Convolution(
-        clip_y, [-3, -3, -3, -3, 0, -3, 5, 5, 5], divisor=3, saturate=False
-    )
-    se = core.std.Convolution(
-        clip_y, [-3, -3, -3, -3, 0, 5, -3, 5, 5], divisor=3, saturate=False
-    )
-    e = core.std.Convolution(
-        clip_y, [-3, -3, 5, -3, 0, 5, -3, -3, 5], divisor=3, saturate=False
-    )
-    ne = core.std.Convolution(
-        clip_y, [-3, 5, 5, -3, 0, 5, -3, -3, -3], divisor=3, saturate=False
-    )
+    n = core.std.Convolution(clip_y, [5, 5, 5, -3, 0, -3, -3, -3, -3], divisor=3, saturate=False)
+    nw = core.std.Convolution(clip_y, [5, 5, -3, 5, 0, -3, -3, -3, -3], divisor=3, saturate=False)
+    w = core.std.Convolution(clip_y, [5, -3, -3, 5, 0, -3, 5, -3, -3], divisor=3, saturate=False)
+    sw = core.std.Convolution(clip_y, [-3, -3, -3, 5, 0, -3, 5, 5, -3], divisor=3, saturate=False)
+    s = core.std.Convolution(clip_y, [-3, -3, -3, -3, 0, -3, 5, 5, 5], divisor=3, saturate=False)
+    se = core.std.Convolution(clip_y, [-3, -3, -3, -3, 0, 5, -3, 5, 5], divisor=3, saturate=False)
+    e = core.std.Convolution(clip_y, [-3, -3, 5, -3, 0, 5, -3, -3, 5], divisor=3, saturate=False)
+    ne = core.std.Convolution(clip_y, [-3, 5, 5, -3, 0, 5, -3, -3, -3], divisor=3, saturate=False)
     return core.std.Expr(
         [n, nw, w, sw, s, se, e, ne],
         ["x y max z max a max b max c max d max e max"],
@@ -1392,9 +1352,7 @@ def rfs_repair(
         repair = hav.HQDeringmod(clip, **repset.dering_args)
 
     mask_src = repair if repset.mask_from_filtred else clip
-    mask = outerline_mask(
-        clip=mask_src, mode=repset.mode, max_c=repset.max_c, min_c=repset.min_c
-    )
+    mask = outerline_mask(clip=mask_src, mode=repset.mode, max_c=repset.max_c, min_c=repset.min_c)
     if out_mask:
         return mask
 
@@ -1632,12 +1590,8 @@ def to60fps_svp(clip: VideoNode) -> VideoNode:
     clip_p8 = depth(clip, 8) if get_depth(clip) != 8 else clip
 
     super_params = "{gpu: 1, pel: 2}"
-    analyse_params = (
-        "{gpu: 1, block: {w:8, overlap:3}, refine: [{thsad:1000, search:{type:3}}]}"
-    )
-    smoothfps_params = (
-        "{rate: {num: 5, den: 2}, algo: 2, gpuid: 0}"  # (24000/1001)*(1001/400)=60
-    )
+    analyse_params = "{gpu: 1, block: {w:8, overlap:3}, refine: [{thsad:1000, search:{type:3}}]}"
+    smoothfps_params = "{rate: {num: 5, den: 2}, algo: 2, gpuid: 0}"  # (24000/1001)*(1001/400)=60
 
     sup = core.svp1.Super(clip_p8, super_params)
     vectors = core.svp1.Analyse(sup["clip"], sup["data"], clip_p8, analyse_params)
@@ -1849,9 +1803,7 @@ def rfs_black_crop(
     bot: int = 0,
 ) -> VideoNode:
 
-    fixed_black = clip.std.CropRel(top=top, bottom=bot).std.AddBorders(
-        top=top, bottom=bot
-    )
+    fixed_black = clip.std.CropRel(top=top, bottom=bot).std.AddBorders(top=top, bottom=bot)
 
     return rfs(clip, fixed_black, maps)
 
