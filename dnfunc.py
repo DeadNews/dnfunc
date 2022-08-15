@@ -56,9 +56,7 @@ def override_dc(data_class: T, block: str, zone: str = "", **override: Any) -> T
                 data_class = replace(data_class, **block_settings[zone])
 
     # func params
-    data_class = replace(data_class, **override)
-
-    return data_class
+    return replace(data_class, **override)
 
 
 ######
@@ -1811,10 +1809,10 @@ def rfs_black_crop(
 def get_list(ranges: list[RangeNormalized]) -> list[int]:
     frames = []
     for x in ranges:
-        if type(x) is tuple:
+        if isinstance(x, tuple):
             start, end = x
             frames.extend(list(range(start, end + 1)))
-        elif type(x) is int:
+        elif isinstance(x, int):
             frames.append(x)
 
     return frames

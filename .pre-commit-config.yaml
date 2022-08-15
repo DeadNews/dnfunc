@@ -21,9 +21,12 @@ repos:
           - flake8-bugbear
           - flake8-comprehensions
           - flake8-implicit-str-concat
+          - flake8-pie
+          - Flake8-pyproject
           - flake8-pytest-style
           - flake8-simplify
           # - flake8-unused-arguments
+          - flake8-use-pathlib
           - pep8-naming
 
   - repo: https://github.com/asottile/pyupgrade
@@ -63,10 +66,10 @@ repos:
         additional_dependencies:
           - bandit[toml] # python_version < "3.11"
 
-#   - repo: https://github.com/python-poetry/poetry
-#     rev: 1.2.0b3
-#     hooks:
-#       - id: poetry-check
+  #   - repo: https://github.com/python-poetry/poetry
+  #     rev: 1.2.0b3
+  #     hooks:
+  #       - id: poetry-check
 
   - repo: https://github.com/executablebooks/mdformat
     rev: 0.7.14
