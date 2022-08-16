@@ -18,7 +18,8 @@ python = "^3.10"
 havsfunc = "^33"
 lvsfunc = "^0.4.3"
 PyYAML = "^6.0"
-VapourSynth = "^59"
+vapoursynth = "^59"
+vapoursynth-portable = { version = "^59", optional = true }
 vsutil = "^0.8.0"
 
 [tool.poetry.dev-dependencies]
@@ -43,6 +44,9 @@ pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
 safety = "^2.0.0"
 types-PyYAML = "^6.0.11"
+
+[tool.poetry.extras]
+vapoursynth-portable = ["vapoursynth-portable"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
