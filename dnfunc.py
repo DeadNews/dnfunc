@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field, replace
 from functools import partial
 from pathlib import Path, PurePath
 from shutil import which
-from typing import Any, Callable, NamedTuple, TypeVar, Union
+from typing import Any, NamedTuple, TypeVar, Union
 
 import havsfunc as hav
 from insaneAA import ClipMode, EEDI3Mode, NNEDI3Mode, insaneAA, rescale, revert_upscale
