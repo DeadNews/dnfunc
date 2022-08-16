@@ -1,3 +1,53 @@
+[tool.poetry]
+name = "dnfunc"
+version = "0.0.1-alpha.0"
+description = "A collection of Vapoursynth functions and wrapperspoetr"
+authors = ["DeadNews <uhjnnn@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/DeadNews/dnfunc"
+repository = "https://github.com/DeadNews/dnfunc"
+keywords = ["vapoursynth", "vapoursynth-functions", "video-encoding"]
+classifiers = [
+  "Operating System :: OS Independent",
+  "Topic :: Multimedia :: Video",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+havsfunc = "^33"
+lvsfunc = "^0.4.3"
+PyYAML = "^6.0"
+VapourSynth = "^59"
+vsutil = "^0.8.0"
+
+[tool.poetry.dev-dependencies]
+bandit = "^1.7.4"
+black = "^22.3.0"
+flake8 = "^5.0.2"
+flake8-bugbear = "^22.4.25"
+flake8-comprehensions = "^3.10.0"
+flake8-implicit-str-concat = "^0.3.0"
+flake8-pie = "^0.16.0"
+flake8-pyproject = "^1.1.0"
+flake8-pytest-style = "^1.6.0"
+flake8-simplify = "^0.19.3"
+flake8-unused-arguments = "^0.0.11"
+flake8-use-pathlib = "^0.3.0"
+isort = "^5.10.1"
+mypy = "^0.971"
+pep8-naming = "^0.13.0"
+poethepoet = "^0.16.0"
+pre-commit = "^2.19.0"
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
+safety = "^2.0.0"
+types-PyYAML = "^6.0.11"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.black]
 line-length = 99
 
@@ -31,6 +81,30 @@ allow_untyped_defs = true
 [tool.bandit]
 exclude_dirs = ["tests"]
 skips = [
-  "B404", # Importing subprocess
-  "B603", # Calling subprocess.Popen without shell=True
+  "B404", # Importing subprocess.
+  "B603", # Calling subprocess.Popen without shell=True.
 ]
+
+[tool.pytest.ini_options]
+addopts = "--verbose --cov=./src"
+testpaths = ["tests"]
+markers = ["docker", "slow"]
+
+[tool.coverage.report]
+exclude_lines = ["if __name__ == .__main__.:"]
+
+[tool.poe.tasks]
+isort = "isort . --check-only --diff"
+black = "black . --check --diff"
+mypy = "mypy ."
+flake8 = "flake8 ."
+bandit = "bandit -c pyproject.toml -r ."
+safety = "safety check --bare"
+
+[tool.poe.tasks.ci]
+help = "CI sequence"
+sequence = ["isort", "black", "mypy", "flake8", "bandit", "safety"]
+
+[tool.poe.tasks.pc]
+help = "pre-commit"
+cmd = "pre-commit run --all-files"
