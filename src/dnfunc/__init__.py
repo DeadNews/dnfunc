@@ -413,7 +413,7 @@ def save_black(
     """
 
     def _diff(
-        n: int, f: VideoFrame, clip: VideoNode, filtered: VideoNode, threshold: float
+        n: int, f: VideoFrame, clip: VideoNode, filtered: VideoNode, threshold: float  # noqa: U100
     ) -> VideoNode:
         return filtered if f.props.PlaneStatsAverage > threshold else clip
 
@@ -934,7 +934,7 @@ def rfs(f1: VideoNode, f2: VideoNode, maps: Maps) -> VideoNode:
     return lrfs(f1, f2, ranges=maps)
 
 
-def _mask_resize(mask: VideoNode, format_src: VideoNode | None = None) -> VideoNode:
+def _mask_resize(mask: VideoNode, format_src: VideoNode | None = None) -> VideoNode:  # noqa: U100
 
     # if format_src:
     #     mask_format = format_src.format.replace(color_family=GRAY, subsampling_w=0, subsampling_h=0)

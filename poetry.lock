@@ -789,6 +789,17 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "vapoursynth-portable"
+version = "59"
+description = "A frameserver for the 21st century"
+category = "main"
+optional = true
+python-versions = "*"
+
+[package.dependencies]
+vapoursynth = "59"
+
+[[package]]
 name = "virtualenv"
 version = "20.16.3"
 description = "Virtual Python Environment builder"
@@ -852,10 +863,13 @@ python-versions = ">=3.8"
 [package.dependencies]
 vapoursynth = "*"
 
+[extras]
+vapoursynth-portable = ["vapoursynth-portable"]
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "a889ecf44620394ca8e9cda66b3b4fea25d296c804515f28953c17cb16b0267a"
+content-hash = "3c16d0d8f2057169407c6ae512de2e63dc52ef9b8ebefb3e9d43a032098cc57a"
 
 [metadata.files]
 astor = [
@@ -1119,6 +1133,7 @@ types-pyyaml = []
 typing-extensions = []
 urllib3 = []
 vapoursynth = []
+vapoursynth-portable = []
 virtualenv = []
 vsexprtools = [
     {file = "vsexprtools-1.0.2-py3-none-any.whl", hash = "sha256:c351869bb9a32b9c4516a05f7802eaf4e3fb28162dfa990b8979868c5060ad3c"},

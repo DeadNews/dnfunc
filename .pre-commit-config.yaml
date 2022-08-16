@@ -25,7 +25,7 @@ repos:
           - flake8-pyproject
           - flake8-pytest-style
           - flake8-simplify
-          # - flake8-unused-arguments
+          - flake8-unused-arguments
           - flake8-use-pathlib
           - pep8-naming
 
