@@ -14,27 +14,60 @@ permissions:
 env:
   PYTHON_VERSION: "3.10"
   FORCE_COLOR: 1
+  LD_LIBRARY_PATH: /usr/local/lib
 
 jobs:
-  code-quality:
-    name: Check code quality
-    runs-on: windows-latest
+  ci:
+    name: CI
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04]
+        python-version: ["3.10"]
+        vapoursynth-version: [R59]
+        gcc-version: ["12"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
+
+      - name: Install vapoursynth make-deps
+        run: |
+          sudo apt update
+          sudo apt install cython3 libzimg-dev meson ninja-build g++-${{ matrix.gcc-version }}
+
+      - name: Use ccache
+        uses: hendrikmuhs/ccache-action@v1.2.2
+        with:
+          key: ${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.vapoursynth-version }}-${{ matrix.gcc-version }}
+
+      - name: Configure shell
+        run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+
+      - name: Install vapoursynth
+        run: |
+          git clone https://github.com/vapoursynth/vapoursynth --depth 1 -b ${{ matrix.vapoursynth-version }}
+          pushd vapoursynth
+          ./autogen.sh
+          ./configure --disable-x86-asm --disable-vsscript --disable-vspipe
+          make -j2
+          sudo make install -j2
+          popd
+          rm -rf vapoursynth
 
       - name: Install poetry
         run: pipx install poetry
 
-      - name: Export dependencies
-        run: poetry export -f requirements.txt --without-hashes --dev --extras vapoursynth-portable --output requirements.txt
-
       - uses: actions/setup-python@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          poetry env use ${{ matrix.python-version }}
+          poetry install
 
       - name: Check code quality
         run: poetry run poe ci
@@ -42,7 +75,7 @@ jobs:
   build-release:
     name: Build and release
     if: github.event_name == 'release' && github.event.action == 'created'
-    needs: [code-quality]
+    needs: [ci]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

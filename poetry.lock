@@ -799,17 +799,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "vapoursynth-portable"
-version = "59"
-description = "A frameserver for the 21st century"
-category = "main"
-optional = true
-python-versions = "*"
-
-[package.dependencies]
-vapoursynth = "59"
-
-[[package]]
 name = "virtualenv"
 version = "20.16.3"
 description = "Virtual Python Environment builder"
@@ -934,13 +923,10 @@ python-versions = ">=3.8"
 [package.dependencies]
 vapoursynth = "*"
 
-[extras]
-vapoursynth-portable = ["vapoursynth-portable"]
-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "51829c0ef75f3623430ca54a523f1df650fb36bc35520b20cbbec81a023ef8b7"
+content-hash = "c1ee913e5dd3d25cae965d0c0a63138afc9fd2d8982b9bf065ca693979f1e15e"
 
 [metadata.files]
 astor = [
@@ -1264,7 +1250,6 @@ urllib3 = [
     {file = "urllib3-1.26.12.tar.gz", hash = "sha256:3fa96cf423e6987997fc326ae8df396db2a8b7c667747d47ddd8ecba91f4a74e"},
 ]
 vapoursynth = []
-vapoursynth-portable = []
 virtualenv = []
 vsaa = [
     {file = "vsaa-1.1.0-py3-none-any.whl", hash = "sha256:d9b018ca43f2a66b595dcb3beb8eb6242fb0cd2806c371d8caea7b3a376b3b41"},
