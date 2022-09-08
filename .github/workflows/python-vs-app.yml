@@ -13,7 +13,6 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.10"
-  FORCE_COLOR: 1
   LD_LIBRARY_PATH: /usr/local/lib
 
 jobs:
