@@ -191,10 +191,7 @@ def aa(
             aa_lossless = source(f1)
 
             if aa_lossless.num_frames != clip.num_frames:
-                raise NumFramesError(
-                    f"{epname}_aa_lossless — {aa_lossless.num_frames}, "
-                    f"clip — {clip.num_frames}"
-                )
+                raise NumFramesError(f"{aa_lossless.num_frames=}, {clip.num_frames=}")
 
             return aa_lossless
 
@@ -288,9 +285,7 @@ def oped(
 
     if not (oped_clip.num_frames == ncoped.num_frames == ncoped_aa.num_frames):
         raise NumFramesError(
-            f"{name}: {name}_titles — {oped_clip.num_frames}, "
-            f"nc{name} — {ncoped.num_frames}, "
-            f"nc{name}_aa — {ncoped_aa.num_frames}"
+            f"{oped_clip.num_frames=}, {ncoped.num_frames=}, {ncoped_aa.num_frames=}"
         )
 
     return save_titles(oped_clip=oped_clip, ncoped=ncoped, ncoped_aa=ncoped_aa)
@@ -932,6 +927,11 @@ def rfs(f1: VideoNode, f2: VideoNode, maps: Maps) -> VideoNode:
     from lvsfunc import rfs as lrfs
 
     return lrfs(f1, f2, ranges=maps)
+
+
+def check_num_frames(epis: VideoNode, clip: VideoNode) -> None:
+    if epis.num_frames != clip.num_frames:
+        raise NumFramesError(f"{epis.num_frames=}, {clip.num_frames=}")
 
 
 def _mask_resize(mask: VideoNode, format_src: VideoNode | None = None) -> VideoNode:  # noqa: U100
