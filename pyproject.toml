@@ -18,7 +18,7 @@ python = "^3.10"
 havsfunc = "^33"
 lvsfunc = "^0.4.3"
 PyYAML = "^6.0"
-vapoursynth = "^59"
+vapoursynth = ">=59,<61"
 vsutil = "^0.8.0"
 
 [tool.poetry.group.dev.dependencies]
