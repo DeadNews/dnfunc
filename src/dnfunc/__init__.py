@@ -9,14 +9,15 @@ from typing import Any, NamedTuple, TypeVar, Union
 import havsfunc as hav
 from insaneAA import ClipMode, EEDI3Mode, NNEDI3Mode, insaneAA, rescale, revert_upscale
 from kagefunc import adaptive_grain, kirsch, retinex_edgemask
+from lvsfunc import rfs
+from lvsfunc.types import Range
 from vapoursynth import GRAY16, RGB, YUV420P10, VideoFrame, VideoNode, core
 from vsutil import depth, get_depth, get_y, iterate, join, split
 from yaml import safe_load
 
 T = TypeVar("T")
-Range = Union[int | None, tuple[int | None, int | None]]
-Maps = str | Range | list[Range]
 RangeNormalized = Union[int, tuple[int, int]]
+Maps = Union[Range, list[Range]]
 VideoFunc1 = Callable[[VideoNode], VideoNode]
 VideoFunc2 = Callable[[VideoNode, VideoNode], VideoNode]
 
@@ -917,16 +918,6 @@ def masked_merge(
         mask=mask,
         planes=[0, 1, 2] if yuv else [0],
     )
-
-
-def rfs(f1: VideoNode, f2: VideoNode, maps: Maps) -> VideoNode:
-
-    if isinstance(maps, str):
-        return core.remap.Rfs(f1, f2, mappings=maps)
-
-    from lvsfunc import rfs as lrfs
-
-    return lrfs(f1, f2, ranges=maps)
 
 
 def check_num_frames(epis: VideoNode, clip: VideoNode) -> None:
