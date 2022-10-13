@@ -16,8 +16,8 @@ from vsutil import depth, get_depth, get_y, iterate, join, split
 from yaml import safe_load
 
 T = TypeVar("T")
-RangeNormalized = Union[int, tuple[int, int]]
 Maps = Union[Range, list[Range]]
+RangeNormalized = Union[int, tuple[int, int]]
 VideoFunc1 = Callable[[VideoNode], VideoNode]
 VideoFunc2 = Callable[[VideoNode, VideoNode], VideoNode]
 
