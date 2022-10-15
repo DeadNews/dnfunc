@@ -32,7 +32,7 @@ repos:
           - pep8-naming
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.38.0
+    rev: v3.1.0
     hooks:
       - id: pyupgrade
         args: [--py310-plus]
@@ -43,12 +43,12 @@ repos:
       - id: isort
 
   - repo: https://github.com/psf/black
-    rev: 22.8.0
+    rev: 22.10.0
     hooks:
       - id: black
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.971
+    rev: v0.982
     hooks:
       - id: mypy
         additional_dependencies:
@@ -69,7 +69,7 @@ repos:
           - bandit[toml] # python_version < "3.11"
 
   - repo: https://github.com/python-poetry/poetry
-    rev: 1.2.0rc1
+    rev: 337e90f9a0731836a6806b26f594643674736467 # frozen: 1.2.2
     hooks:
       - id: poetry-check
       - id: poetry-lock

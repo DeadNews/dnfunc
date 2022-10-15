@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dnfunc"
-version = "0.0.1-alpha.2"
+version = "0.0.1"
 description = "A collection of Vapoursynth functions and wrapperspoetr"
 authors = ["DeadNews <uhjnnn@gmail.com>"]
 license = "MIT"
@@ -18,7 +18,7 @@ python = "^3.10"
 havsfunc = "^33"
 lvsfunc = "^0.4.3"
 PyYAML = "^6.0"
-vapoursynth = "^59"
+vapoursynth = "^60"
 vsutil = "^0.8.0"
 
 [tool.poetry.group.dev.dependencies]

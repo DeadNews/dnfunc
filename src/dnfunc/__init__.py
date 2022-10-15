@@ -7,15 +7,16 @@ from shutil import which
 from typing import Any, NamedTuple, TypeVar, Union
 
 import havsfunc as hav
-from insaneAA import ClipMode, EEDI3Mode, NNEDI3Mode, insaneAA, rescale, revert_upscale
+import insane_aa as iaa
 from kagefunc import adaptive_grain, kirsch, retinex_edgemask
+from lvsfunc import rfs
+from lvsfunc.types import Range
 from vapoursynth import GRAY16, RGB, YUV420P10, VideoFrame, VideoNode, core
 from vsutil import depth, get_depth, get_y, iterate, join, split
 from yaml import safe_load
 
 T = TypeVar("T")
-Range = Union[int | None, tuple[int | None, int | None]]
-Maps = str | Range | list[Range]
+Maps = Union[Range, list[Range]]
 RangeNormalized = Union[int, tuple[int, int]]
 VideoFunc1 = Callable[[VideoNode], VideoNode]
 VideoFunc2 = Callable[[VideoNode, VideoNode], VideoNode]
@@ -69,23 +70,23 @@ class NumFramesError(Exception):
 
 
 class Edi3Mode(NamedTuple):
-    eedi3_mode: EEDI3Mode
+    eedi3_mode: iaa.EEDI3Mode
     device: int
-    nnedi3_mode: NNEDI3Mode
+    nnedi3_mode: iaa.NNEDI3Mode
 
 
 def get_edi3_mode() -> Edi3Mode:
     if which("nvidia-smi") is not None:
         return Edi3Mode(
-            eedi3_mode=EEDI3Mode.OPENCL,
+            eedi3_mode=iaa.EEDI3Mode.OPENCL,
             device=0,
-            nnedi3_mode=NNEDI3Mode.NNEDI3CL,
+            nnedi3_mode=iaa.NNEDI3Mode.NNEDI3CL,
         )
     else:
         return Edi3Mode(
-            eedi3_mode=EEDI3Mode.CPU,
+            eedi3_mode=iaa.EEDI3Mode.CPU,
             device=-1,
-            nnedi3_mode=NNEDI3Mode.ZNEDI3,
+            nnedi3_mode=iaa.NNEDI3Mode.ZNEDI3,
         )
 
 
@@ -116,14 +117,14 @@ class AASettings:
 def insane_aa(
     clip: VideoNode,
     aaset: AASettings,
-    out_mode: ClipMode,
+    out_mode: iaa.ClipMode,
     desc_h: int,
     desc_str: float,
     ext_mask: VideoNode | None = None,
 ) -> VideoNode:
 
     edi3set = get_edi3_mode()
-    return insaneAA(
+    return iaa.insaneAA(
         clip=clip,
         eedi3_mode=edi3set.eedi3_mode,
         eedi3_device=edi3set.device,
@@ -153,21 +154,21 @@ def aa_yuv(clip: VideoNode, aaset: AASettings) -> VideoNode:
     planes[0] = insane_aa(
         clip=planes[0],
         aaset=aaset,
-        out_mode=ClipMode.MASKED,
+        out_mode=iaa.ClipMode.MASKED,
         desc_str=aaset.desc_str,
         desc_h=aaset.desc_h,
     )
     planes[1] = insane_aa(
         clip=planes[1],
         aaset=aaset,
-        out_mode=ClipMode.MASKED,
+        out_mode=iaa.ClipMode.MASKED,
         desc_str=aaset.uv_desc_str,
         desc_h=aaset.uv_desc_h,
     )
     planes[2] = insane_aa(
         clip=planes[2],
         aaset=aaset,
-        out_mode=ClipMode.MASKED,
+        out_mode=iaa.ClipMode.MASKED,
         desc_str=aaset.uv_desc_str,
         desc_h=aaset.uv_desc_h,
     )
@@ -204,7 +205,7 @@ def aa(
         return insane_aa(
             clip=clip,
             aaset=aaset,
-            out_mode=ClipMode.FULL,
+            out_mode=iaa.ClipMode.FULL,
             desc_str=aaset.desc_str,
             desc_h=clip.height if aaset.eedi3_only else aaset.desc_h,
             ext_mask=ext_mask,
@@ -919,16 +920,6 @@ def masked_merge(
     )
 
 
-def rfs(f1: VideoNode, f2: VideoNode, maps: Maps) -> VideoNode:
-
-    if isinstance(maps, str):
-        return core.remap.Rfs(f1, f2, mappings=maps)
-
-    from lvsfunc import rfs as lrfs
-
-    return lrfs(f1, f2, ranges=maps)
-
-
 def check_num_frames(epis: VideoNode, clip: VideoNode) -> None:
     if epis.num_frames != clip.num_frames:
         raise NumFramesError(f"{epis.num_frames=}, {clip.num_frames=}")
@@ -1119,7 +1110,7 @@ def hard(clip: VideoNode, mthr: int, zone: str = "", **override: Any) -> VideoNo
     revset = AASettings()
     revset = override_dc(revset, block="aa", zone=zone, **override)
 
-    revert = revert_upscale(
+    revert = iaa.revert_upscale(
         clip=clip,
         descale_strength=revset.desc_str,
         descale_height=revset.desc_h,
@@ -1129,7 +1120,7 @@ def hard(clip: VideoNode, mthr: int, zone: str = "", **override: Any) -> VideoNo
     )
 
     hard_aa = _hard(revert, mthr=mthr, yuv=yuv)
-    return rescale_(hard_aa, mode="insaneAA", ref_clip=clip)
+    return rescale_(hard_aa, mode="insane_aa", ref_clip=clip)
 
 
 def rfs_hard(
@@ -1753,7 +1744,7 @@ def rescale_(
         aaset = override_dc(aaset, block="aa", zone=zone, **override)
 
         edi3set = get_edi3_mode()
-        return rescale(
+        return iaa.rescale(
             clip,
             eedi3_mode=edi3set.eedi3_mode,
             eedi3_device=edi3set.device,
