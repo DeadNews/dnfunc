@@ -2,9 +2,9 @@ name: CI/CD
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
   pull_request:
-    branches: [main, dev]
+    branches: [main]
   release:
     types: [created]
 
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: "3.10"
+  PYTHON_VERSION: "3.11"
   LD_LIBRARY_PATH: /usr/local/lib
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-        python-version: ["3.10"]
+        python-version: ["3.10", "3.11"]
         vapoursynth-version: [R60]
         gcc-version: ["12"]
     runs-on: ${{ matrix.os }}
@@ -37,7 +37,7 @@ jobs:
           sudo apt install cython3 libzimg-dev meson ninja-build g++-${{ matrix.gcc-version }}
 
       - name: Use ccache
-        uses: hendrikmuhs/ccache-action@v1.2.2
+        uses: hendrikmuhs/ccache-action@v1
         with:
           key: ${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.vapoursynth-version }}-${{ matrix.gcc-version }}
 

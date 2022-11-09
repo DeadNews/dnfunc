@@ -1069,7 +1069,7 @@ def rfs_resc(
     epis: VideoNode = None,
     zone: str = "",
     maps: Maps | None = None,
-    filt: VideoFunc1 = None,
+    filt: VideoFunc1 | None = None,
     out_mask: bool = False,
     **override: Any,
 ) -> VideoNode:
