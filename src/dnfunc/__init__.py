@@ -4,22 +4,20 @@ from dataclasses import dataclass, field, replace
 from functools import partial
 from pathlib import Path, PurePath
 from shutil import which
-from typing import Any, NamedTuple, TypeVar, Union
+from typing import Any, NamedTuple, TypeAlias, TypeVar, Union
 
 import havsfunc as hav
 import insane_aa as iaa
 from kagefunc import adaptive_grain, kirsch, retinex_edgemask
-from lvsfunc import rfs
-from lvsfunc.types import Range
 from vapoursynth import GRAY16, RGB, YUV420P10, VideoFrame, VideoNode, core
+from vstools import FrameRange, FrameRangeN, FrameRangesN, rfs
 from vsutil import depth, get_depth, get_y, iterate, join, split
 from yaml import safe_load
 
 T = TypeVar("T")
-Maps = Union[Range, list[Range]]
-RangeNormalized = Union[int, tuple[int, int]]
-VideoFunc1 = Callable[[VideoNode], VideoNode]
-VideoFunc2 = Callable[[VideoNode, VideoNode], VideoNode]
+Maps: TypeAlias = Union[FrameRangeN, FrameRangesN]
+VideoFunc1: TypeAlias = Callable[[VideoNode], VideoNode]
+VideoFunc2: TypeAlias = Callable[[VideoNode, VideoNode], VideoNode]
 
 PROC_DEPTH = 16  # processing_depth
 
@@ -1797,7 +1795,7 @@ def rfs_black_crop(
     return rfs(clip, fixed_black, maps)
 
 
-def get_list(ranges: list[RangeNormalized]) -> list[int]:
+def get_list(ranges: list[FrameRange]) -> list[int]:
     frames = []
     for x in ranges:
         if isinstance(x, tuple):
@@ -1814,7 +1812,7 @@ def pv_diff(
     bd: VideoNode,
     thr: float = 72,
     name: str = "",
-    exclude_ranges: list[RangeNormalized] | None = None,
+    exclude_ranges: list[FrameRange] | None = None,
 ) -> VideoNode:
     from lvsfunc import diff
 
