@@ -813,7 +813,7 @@ testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7
 
 [[package]]
 name = "vstools"
-version = "1.6.10"
+version = "1.6.11"
 description = "Functions and utils related to VapourSynth"
 category = "main"
 optional = false
@@ -1287,8 +1287,8 @@ virtualenv = [
     {file = "virtualenv-20.17.0.tar.gz", hash = "sha256:7d6a8d55b2f73b617f684ee40fd85740f062e1f2e379412cb1879c7136f05902"},
 ]
 vstools = [
-    {file = "vstools-1.6.10-py3-none-any.whl", hash = "sha256:2a84af3f51a6faae07315656f187b67c33cb95b16278b664fde759ac012c70b4"},
-    {file = "vstools-1.6.10.tar.gz", hash = "sha256:d0ab1c098d00cc7b222c1c89b516b716bceec13e98b7395b01e971d21bbbc6d8"},
+    {file = "vstools-1.6.11-py3-none-any.whl", hash = "sha256:5b3ad72eeab423ae0f9016a0572f6e017762003ba3ee50c15f0ca171c01119f8"},
+    {file = "vstools-1.6.11.tar.gz", hash = "sha256:78621c659f4c8577b15e8cdf9fb9115eba6eaf595775ded1fa646064d180fdc6"},
 ]
 vsutil = [
     {file = "vsutil-0.8.0-py3-none-any.whl", hash = "sha256:b14751680f1aa47a8671a943932e160fc3b6029b3e60227875fd73d7a47dac86"},
