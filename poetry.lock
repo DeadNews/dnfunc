@@ -1143,14 +1143,14 @@ files = [
 
 [[package]]
 name = "vstools"
-version = "1.6.11"
+version = "1.6.13"
 description = "Functions and utils related to VapourSynth"
 category = "main"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "vstools-1.6.11-py3-none-any.whl", hash = "sha256:5b3ad72eeab423ae0f9016a0572f6e017762003ba3ee50c15f0ca171c01119f8"},
-    {file = "vstools-1.6.11.tar.gz", hash = "sha256:78621c659f4c8577b15e8cdf9fb9115eba6eaf595775ded1fa646064d180fdc6"},
+    {file = "vstools-1.6.13-py3-none-any.whl", hash = "sha256:e157b259ac027b720afaca78687b4bef06bc8f41b8aa970c841c217ff6f322c8"},
+    {file = "vstools-1.6.13.tar.gz", hash = "sha256:e091aa958ff5b0d81cedf4d163d3d9a75474355fe7cc8c226136bb32175247cd"},
 ]
 
 [package.dependencies]
