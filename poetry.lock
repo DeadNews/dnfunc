@@ -1230,19 +1230,19 @@ files = [
 
 [[package]]
 name = "vstools"
-version = "1.6.13"
+version = "2.0.5"
 description = "Functions and utils related to VapourSynth"
 category = "main"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "vstools-1.6.13-py3-none-any.whl", hash = "sha256:e157b259ac027b720afaca78687b4bef06bc8f41b8aa970c841c217ff6f322c8"},
-    {file = "vstools-1.6.13.tar.gz", hash = "sha256:e091aa958ff5b0d81cedf4d163d3d9a75474355fe7cc8c226136bb32175247cd"},
+    {file = "vstools-2.0.5-py3-none-any.whl", hash = "sha256:f7c4f6b344dc442873064b80bbec9b878344763b245f871d56d2c139dedb700d"},
+    {file = "vstools-2.0.5.tar.gz", hash = "sha256:5044b7b7ece1084fd361244022d2dd48db2c70d0860171701ed9fb1778353b13"},
 ]
 
 [package.dependencies]
 rich = ">=12.6.0"
-VapourSynth = ">=59"
+VapourSynth = ">=60"
 
 [[package]]
 name = "vsutil"
@@ -1262,4 +1262,4 @@ vapoursynth = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "60245359aef5405f2ef31291442adcaa18f9d69f89424e0cc95351b6484e2aa1"
+content-hash = "543d5410f2cae1439f620a5a42a4011395624496cdcfac5d382c23cf4a6d0e78"

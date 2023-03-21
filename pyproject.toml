@@ -19,7 +19,7 @@ havsfunc = "^33"
 pyyaml = "^6.0"
 vapoursynth = ">=60"
 vsutil = "^0.8.0"
-vstools = "^1.6.2"
+vstools = ">=1.6.2,<3.0.0"
 
 [tool.poetry.group.ci.dependencies]
 bandit = "^1.7.4"
