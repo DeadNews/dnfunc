@@ -48,7 +48,7 @@ repos:
       - id: black
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.0.1
+    rev: v1.1.1
     hooks:
       - id: mypy
         additional_dependencies:
@@ -61,7 +61,7 @@ repos:
         additional_dependencies: *flake8_deps
 
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.4
+    rev: 1.7.5
     hooks:
       - id: bandit
         args: [-c, pyproject.toml]
@@ -69,14 +69,14 @@ repos:
           - bandit[toml] # python_version < "3.11"
 
   # - repo: https://github.com/python-poetry/poetry
-  #   rev: 1.2.2
+  #   rev: 1.4.0
   #   hooks:
   #     - id: poetry-check
   #     - id: poetry-lock
   #       args: [--check]
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.21.0
+    rev: 0.22.0
     hooks:
       - id: check-dependabot
       - id: check-github-workflows
