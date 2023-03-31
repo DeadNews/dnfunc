@@ -23,9 +23,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04]
+        os: [ubuntu-latest]
         python-version: ["3.10", "3.11"]
-        vapoursynth-version: [R61]
+        vapoursynth-version: [R62]
         gcc-version: ["12"]
     runs-on: ${{ matrix.os }}
     steps:
