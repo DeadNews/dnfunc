@@ -1128,6 +1128,8 @@ class QTGMCSettings:
 
 def qtgmc(clip: VideoNode, zone: str = "", **override: Any) -> VideoNode:
     """
+    QTGMC.
+
     InputType — 0 for interlaced input. Mode 1 is for general progressive material.
     Modes 2 & 3 are designed for badly deinterlaced material.
     Sharpness — The default 1.0 is fairly sharp. If using source-match the default is 0.2
@@ -1589,9 +1591,7 @@ def adaptive_chromashift(
     fix: VideoNode,
     pw_mode: int = 0,
 ) -> VideoNode:
-    """
-    Chromashift with comparisons for floating chromashift
-    """
+    """Chromashift with comparisons for floating chromashift"""
 
     def make_diff(clip: VideoNode) -> VideoNode:
         from fvsfunc import Downscale444
