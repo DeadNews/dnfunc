@@ -1404,7 +1404,7 @@ def edgefix(
     zone: str = "",
     **override: Any,
 ) -> tuple[VideoNode, VideoNode, VideoFunc1]:
-    """Fix  edges."""
+    """Fix edges."""
 
     def _edgefixer(epis: VideoNode) -> VideoNode:
         if not edset.yuv or not edset.crop_args:
@@ -1693,6 +1693,7 @@ def rescale_(
     zone: str = "",
     **override: Any,
 ) -> VideoNode:
+    """Upcale clip to the new size."""
     if ref_clip is not None:
         dx = ref_clip.width
         dy = ref_clip.height
@@ -1736,6 +1737,7 @@ def rescale_(
 
 
 def downscale(clip: VideoNode, desc_h: int = 720, to420: bool = False) -> VideoNode:
+    """Downcale clip to the new size."""
     if clip.height == desc_h:
         return clip
 
