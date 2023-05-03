@@ -80,19 +80,17 @@ ignore = [
   "EXE001",  # Shebang is present but file is not executable
   "FBT001",  # Boolean positional arg in function definition
   "PLR2004", # Magic value used in comparison
-  "S113",    # Missing requests timeout
-  "S603",    # Calling subprocess.Popen with shell=False
+  "FBT",
+  #
+  "ANN401", # Dynamically typed expressions (typing.Any) are disallowed in {name}
+  "D101",   # Missing docstring in public class
+  "D102",   # Missing docstring in public method
+  "D103",   # Missing docstring in public function
+  "ERA001", # Found commented-out code
 ]
-
-[tool.ruff.per-file-ignores]
-"__init__.py" = ["F401"]
-"tests/*" = ["ANN", "D", "S"]
 
 [tool.ruff.flake8-comprehensions]
 allow-dict-calls-with-keyword-arguments = false
 
-[tool.ruff.flake8-tidy-imports]
-ban-relative-imports = "all"
-
-[tool.ruff.mccabe]
-max-complexity = 10
+[tool.ruff.pylint]
+max-args = 10
