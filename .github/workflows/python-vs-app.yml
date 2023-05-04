@@ -13,8 +13,8 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.11"
-  LD_LIBRARY_PATH: /usr/local/lib
   GCC_VERSION: "12"
+  LD_LIBRARY_PATH: /usr/local/lib
   # renovate: datasource=pypi depName=vapoursynth
   VAPOURSYNTH_VERSION: "62"
 
@@ -28,7 +28,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ["3.10", "3.11"]
-        vapoursynth-version: ["${{ env.VAPOURSYNTH_VERSION }}"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -41,14 +40,14 @@ jobs:
       - name: Use ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
-          key: ${{ matrix.os }}-R${{ matrix.vapoursynth-version }}-${{ env.GCC_VERSION }}
+          key: ${{ matrix.os }}-g++-${{ env.GCC_VERSION }}-R${{ env.VAPOURSYNTH_VERSION }}
 
       - name: Configure shell
         run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
 
       - name: Install vapoursynth
         run: |
-          git clone https://github.com/vapoursynth/vapoursynth --depth 1 -b R${{ matrix.vapoursynth-version }}
+          git clone https://github.com/vapoursynth/vapoursynth --depth 1 -b R${{ env.VAPOURSYNTH_VERSION }}
           pushd vapoursynth
           ./autogen.sh
           ./configure --disable-x86-asm --disable-vspipe
