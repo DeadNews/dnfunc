@@ -14,6 +14,9 @@ permissions:
 env:
   PYTHON_VERSION: "3.11"
   LD_LIBRARY_PATH: /usr/local/lib
+  GCC_VERSION: "12"
+  # renovate: datasource=pypi depName=vapoursynth
+  VAPOURSYNTH_VERSION: "62"
 
 jobs:
   ci:
@@ -25,8 +28,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ["3.10", "3.11"]
-        vapoursynth-version: [R62]
-        gcc-version: ["12"]
+        vapoursynth-version: ["${{ env.VAPOURSYNTH_VERSION }}"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -34,19 +36,19 @@ jobs:
       - name: Install vapoursynth make-deps
         run: |
           sudo apt update
-          sudo apt install cython3 libzimg-dev meson ninja-build g++-${{ matrix.gcc-version }}
+          sudo apt install cython3 libzimg-dev meson ninja-build g++-${{ env.GCC_VERSION }}
 
       - name: Use ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
-          key: ${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.vapoursynth-version }}-${{ matrix.gcc-version }}
+          key: ${{ matrix.os }}-R${{ matrix.vapoursynth-version }}-${{ env.GCC_VERSION }}
 
       - name: Configure shell
         run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
 
       - name: Install vapoursynth
         run: |
-          git clone https://github.com/vapoursynth/vapoursynth --depth 1 -b ${{ matrix.vapoursynth-version }}
+          git clone https://github.com/vapoursynth/vapoursynth --depth 1 -b R${{ matrix.vapoursynth-version }}
           pushd vapoursynth
           ./autogen.sh
           ./configure --disable-x86-asm --disable-vspipe
@@ -71,8 +73,8 @@ jobs:
       - name: Check code quality
         run: poetry run poe ci
 
-  build-release:
-    name: Build and release
+  publish-pypi:
+    name: Build and release to PyPI
     if: github.event_name == 'release' && github.event.action == 'created'
     needs: [ci]
     runs-on: ubuntu-latest
@@ -82,7 +84,7 @@ jobs:
       - name: Install poetry
         run: |
           pipx install poetry
-          poetry self add poetry-dynamic-versioning[plugin]
+          pipx inject poetry poetry-dynamic-versioning[plugin]
 
       - uses: actions/setup-python@v4
         with:
@@ -92,6 +94,4 @@ jobs:
         run: poetry build
 
       - name: Publish package to PyPI
-        run: poetry publish --no-interaction
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
+        uses: pypa/gh-action-pypi-publish@release/v1
