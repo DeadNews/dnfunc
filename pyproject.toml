@@ -20,11 +20,12 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.10"
 havsfunc = "^33"
+lvsfunc = "^0.7.1"
+mvsfunc = { git = "https://github.com/HomeOfVapourSynthEvolution/mvsfunc.git", branch = "master" }
 pyyaml = "^6.0"
 vapoursynth = ">=61"
-vsutil = "^0.8.0"
 vstools = "^2.0.6"
-mvsfunc = { git = "https://github.com/HomeOfVapourSynthEvolution/mvsfunc.git", branch = "master" }
+vsutil = "^0.8.0"
 
 [tool.poetry.group.ci.dependencies]
 black = "^23.3.0"
