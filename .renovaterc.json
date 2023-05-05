@@ -1,0 +1,33 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "automerge": true,
+  "automergeSchedule": ["every weekend"],
+  "automergeStrategy": "squash",
+  "commitMessageAction": "update",
+  "dependencyDashboard": true,
+  "extends": ["config:base"],
+  "labels": ["deps"],
+  "packageRules": [
+    {
+      "addLabels": ["main", "major"],
+      "automerge": false,
+      "description": "Disable automerge for major updates in Poetry main dependency group",
+      "matchDepTypes": ["dependencies"],
+      "matchManagers": ["poetry"],
+      "matchUpdateTypes": ["major"]
+    }
+  ],
+  "platformAutomerge": true,
+  "pre-commit": {
+    "enabled": true
+  },
+  "regexManagers": [
+    {
+      "fileMatch": ["^.github/(?:workflows|actions)/.+\\.ya?ml$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+?)(?: (?:lookupName|packageName)=(?<packageName>[^\\s]+?))?(?: versioning=(?<versioning>[a-z-0-9]+?))?\\s+[A-Za-z0-9_]+?_VERSION\\s*:\\s*[\"']?(?<currentValue>.+?)[\"']?\\s"
+      ]
+    }
+  ],
+  "semanticCommits": "enabled"
+}
