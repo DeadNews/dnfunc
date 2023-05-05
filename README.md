@@ -8,4 +8,4 @@
 
 ## Deps
 
-- <https://github.com/DeadNews/zsh-scripts/blob/main/src/vs-plugins.zsh>
+<https://github.com/DeadNews/zsh-scripts/blob/main/src/vs-plugins.zsh>
