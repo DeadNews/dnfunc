@@ -241,25 +241,6 @@ files = [
 ]
 
 [[package]]
-name = "mvsfunc"
-version = "11"
-description = "mawen1250's VapourSynth functions"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-files = []
-develop = false
-
-[package.dependencies]
-VapourSynth = ">=45"
-
-[package.source]
-type = "git"
-url = "https://github.com/HomeOfVapourSynthEvolution/mvsfunc.git"
-reference = "master"
-resolved_reference = "865c7486ca860d323754ec4774bc4cca540a7076"
-
-[[package]]
 name = "mypy"
 version = "1.2.0"
 description = "Optional static typing for Python"
@@ -687,4 +668,4 @@ vapoursynth = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "10f77d15be6a2e018c7211515a54fc967f88d8f39fcb139d2350933de0394bbb"
+content-hash = "b21326cce6ecfbdefe12eb38a2b57156fad53ea335a0e71a10708b1e32dcc16a"

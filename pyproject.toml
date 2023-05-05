@@ -22,7 +22,6 @@ python = "^3.10"
 vapoursynth = ">=60"
 havsfunc = "^33"
 lvsfunc = "^0.7.1"
-mvsfunc = { git = "https://github.com/HomeOfVapourSynthEvolution/mvsfunc.git", branch = "master" }
 pyyaml = "^6.0"
 vstools = "^2.1.0"
 vsutil = "^0.8.0"
