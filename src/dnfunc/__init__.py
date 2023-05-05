@@ -237,7 +237,7 @@ def save_titles(
     return masked_merge(saved_titles, oped_clip, mask=mask, yuv=False)
 
 
-def oped(
+def oped(  # noqa: PLR0913
     clip: VideoNode,
     name: str,
     offset: int,
@@ -786,7 +786,7 @@ def chapt(epname: str, chaptname: str, fallback: str = "") -> int | None:
     return epchaps.get(chaptname, epchaps.get(fallback))
 
 
-def load_map(epname: str, mapname: str) -> Any:
+def load_map(epname: str, mapname: str) -> Any:  # noqa: ANN401
     maps = load_yaml("./maps.yaml")
 
     return None if maps is None else maps[mapname].get(epname)
@@ -804,6 +804,7 @@ def source(
     fpsnum: int = 0,
     fpsden: int = 0,
 ) -> VideoNode:
+    """Load video source."""
     f1 = PurePath(file)
 
     if f1.suffix == ".mp4":

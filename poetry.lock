@@ -623,19 +623,19 @@ files = [
 
 [[package]]
 name = "vskernels"
-version = "2.3.2"
+version = "2.4.0"
 description = "Kernel objects for scaling and format conversion within VapourSynth"
 category = "main"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "vskernels-2.3.2-py3-none-any.whl", hash = "sha256:7bb5e8bae5298ed30aa090bf35ac1e11acf590da9ef3d99cc41a1a1aba470e2b"},
-    {file = "vskernels-2.3.2.tar.gz", hash = "sha256:808760f02a0ebd3e67edcbdb4ae6d184db71ebf6ce9f2b795585b5ff6950c1e0"},
+    {file = "vskernels-2.4.0-py3-none-any.whl", hash = "sha256:7d7658fa40723d43378e9bfa2420a899eee94eb61e02ad58d823fd5975366fa1"},
+    {file = "vskernels-2.4.0.tar.gz", hash = "sha256:90c35cd42ef73d7c8aced43c742b334914cdc6b49592dc85b88c4c04d39ae7e7"},
 ]
 
 [package.dependencies]
 VapourSynth = ">=60"
-vstools = ">=2.0.5"
+vstools = ">=2.1.0"
 
 [[package]]
 name = "vsparsedvd"
@@ -655,14 +655,14 @@ VapourSynth = ">=59"
 
 [[package]]
 name = "vstools"
-version = "2.0.6"
+version = "2.1.0"
 description = "Functions and utils related to VapourSynth"
 category = "main"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "vstools-2.0.6-py3-none-any.whl", hash = "sha256:d68ac8cc17d8c593e0b7ad8acc304da689994220a4c2dba092c923db0f6076e0"},
-    {file = "vstools-2.0.6.tar.gz", hash = "sha256:b112ea80ea5bee0a1c3d2d1f01a6ac24a814fb74a5a8386e5c6b1c91ad5d93c4"},
+    {file = "vstools-2.1.0-py3-none-any.whl", hash = "sha256:153413304e2382dab90a5a567659f61c0096aa5cf4acbd4c4329322b74f758b0"},
+    {file = "vstools-2.1.0.tar.gz", hash = "sha256:36571f6ba6abaf389637d8ad0c42247a8491abdbe2d7387d7c7daa8269bac81a"},
 ]
 
 [package.dependencies]
@@ -687,4 +687,4 @@ vapoursynth = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "b9ff0ab2e01b73b568f5953bb8ea7b8c5c6bdf3b868a0c61aa5fb25fc0507d8e"
+content-hash = "774698d584d4b3269b6b387c56cd5183c72fb60969529a945086b7631121f978"

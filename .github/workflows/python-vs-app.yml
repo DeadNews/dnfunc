@@ -13,7 +13,6 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.11"
-  GCC_VERSION: "12"
   LD_LIBRARY_PATH: /usr/local/lib
   # renovate: datasource=pypi depName=vapoursynth
   VAPOURSYNTH_VERSION: "62"
@@ -35,12 +34,12 @@ jobs:
       - name: Install vapoursynth make-deps
         run: |
           sudo apt update
-          sudo apt install cython3 libzimg-dev meson ninja-build g++-${{ env.GCC_VERSION }}
+          sudo apt install cython3 libzimg-dev meson ninja-build g++
 
       - name: Use ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
-          key: ${{ matrix.os }}-g++-${{ env.GCC_VERSION }}-R${{ env.VAPOURSYNTH_VERSION }}
+          key: ${{ matrix.os }}-R${{ env.VAPOURSYNTH_VERSION }}
 
       - name: Configure shell
         run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
@@ -77,6 +76,8 @@ jobs:
     if: github.event_name == 'release' && github.event.action == 'created'
     needs: [ci]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v3
 
