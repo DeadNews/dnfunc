@@ -71,6 +71,9 @@ jobs:
       - name: Check code quality
         run: poetry run poe ci
 
+      - name: Check vapoursynth
+        run: poetry run python -c "import vapoursynth; print(vapoursynth.core.version_number())"
+
   publish-pypi:
     name: Build and release to PyPI
     if: github.event_name == 'release' && github.event.action == 'created'
