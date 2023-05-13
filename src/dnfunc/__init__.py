@@ -1802,7 +1802,7 @@ def pv_diff(
             log.write(f"{name}=")
 
         if frames:
-            log.write(f"{repr(frames)} \n\n")
+            log.write(f"{frames!r} \n\n")
         else:
             log.write("no differences found")
 
