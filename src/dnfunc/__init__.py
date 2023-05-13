@@ -1306,7 +1306,7 @@ def rfs_repair(
     maps: Maps | None = None,
     **override: Any,
 ) -> VideoNode:
-    """Applay `Repair` filters."""
+    """Apply `Repair` filters."""
     repset = RepairSettings()
     repset = override_dc(repset, block="repair", zone=zone, **override)
 
