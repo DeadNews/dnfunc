@@ -28,12 +28,12 @@ repos:
       - id: check-renovate
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.14.9
+    rev: v1.14.10
     hooks:
       - id: typos
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.265
+    rev: v0.0.269
     hooks:
       - id: ruff
         args: [--fix]
@@ -44,14 +44,14 @@ repos:
       - id: black
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.2.0
+    rev: v1.3.0
     hooks:
       - id: mypy
         additional_dependencies:
           - types-pyyaml
 
   - repo: https://github.com/python-poetry/poetry
-    rev: 1.4.2
+    rev: 1.5.0
     hooks:
       - id: poetry-check
       - id: poetry-lock
