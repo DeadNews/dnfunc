@@ -31,29 +31,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install vapoursynth make-deps
-        run: |
-          sudo apt update
-          sudo apt install cython3 libzimg-dev meson ninja-build g++
-
-      - name: Use ccache
-        uses: hendrikmuhs/ccache-action@v1
-        with:
-          key: ${{ matrix.os }}-R${{ env.VAPOURSYNTH_VERSION }}
-
-      - name: Configure shell
-        run: echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
-
       - name: Install vapoursynth
-        run: |
-          git clone https://github.com/vapoursynth/vapoursynth --depth 1 -b R${{ env.VAPOURSYNTH_VERSION }}
-          pushd vapoursynth
-          ./autogen.sh
-          ./configure --disable-x86-asm --disable-vspipe
-          make -j2
-          sudo make install -j2
-          popd
-          rm -rf vapoursynth
+        uses: DeadNews/action-vapoursynth-install@main
 
       - name: Install poetry
         run: pipx install poetry
