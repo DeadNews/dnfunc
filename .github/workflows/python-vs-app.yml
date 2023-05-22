@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install vapoursynth
-        uses: DeadNews/action-vapoursynth-install@main
+        uses: deadnews/setup-vapoursynth@main
 
       - name: Install poetry
         run: pipx install poetry
