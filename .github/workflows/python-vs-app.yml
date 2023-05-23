@@ -13,9 +13,6 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.11"
-  LD_LIBRARY_PATH: /usr/local/lib
-  # renovate: datasource=pypi depName=vapoursynth
-  VAPOURSYNTH_VERSION: "62"
 
 jobs:
   ci:
@@ -43,15 +40,10 @@ jobs:
           cache: poetry
 
       - name: Install dependencies
-        run: |
-          poetry env use ${{ matrix.python-version }}
-          poetry install
+        run: poetry install
 
       - name: Check code quality
         run: poetry run poe ci
-
-      - name: Check vapoursynth
-        run: poetry run python -c "import vapoursynth; print(vapoursynth.core.version_number())"
 
   publish-pypi:
     name: Build and release to PyPI
