@@ -1,4 +1,4 @@
-name: CI/CD
+name: Main
 
 on:
   push:
@@ -12,31 +12,23 @@ permissions:
   contents: read
 
 jobs:
-  ci:
-    name: CI
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ["3.10", "3.11"]
-    runs-on: ${{ matrix.os }}
+  code-quality:
+    name: Check code quality
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
       - name: Setup vapoursynth
-        uses: deadnews/setup-vapoursynth@main
+        uses: deadnews/setup-vapoursynth@v0.0.1
 
       - name: Install poetry
         run: pipx install poetry
 
       - uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
           cache: poetry
 
-      - name: Install dependencies
+      - name: Install deps
         run: poetry install
 
       - name: Check code quality
@@ -45,7 +37,7 @@ jobs:
   publish-pypi:
     name: Build and release to PyPI
     if: github.event_name == 'release' && github.event.action == 'created'
-    needs: [ci]
+    needs: [code-quality]
     permissions:
       id-token: write
     runs-on: ubuntu-latest
@@ -63,4 +55,4 @@ jobs:
         run: poetry build
 
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@release/v1.8
