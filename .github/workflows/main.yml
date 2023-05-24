@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 jobs:
-  code-quality:
-    name: Check code quality
+  lint:
+    name: Lint code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -31,13 +31,13 @@ jobs:
       - name: Install deps
         run: poetry install
 
-      - name: Check code quality
+      - name: Lint code
         run: poetry run poe ci
 
   publish-pypi:
-    name: Build and release to PyPI
+    name: Release to PyPI
     if: github.event_name == 'release' && github.event.action == 'created'
-    needs: [code-quality]
+    needs: [lint]
     permissions:
       id-token: write
     runs-on: ubuntu-latest
@@ -55,4 +55,4 @@ jobs:
         run: poetry build
 
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1.8
+        uses: pypa/gh-action-pypi-publish@v1.8.6
