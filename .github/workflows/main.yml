@@ -32,7 +32,7 @@ jobs:
         run: poetry install
 
       - name: Lint code
-        run: poetry run poe ci
+        run: poetry run poe lint
 
   publish-pypi:
     name: Release to PyPI
