@@ -1,0 +1,58 @@
+name: Main
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup vapoursynth
+        uses: deadnews/setup-vapoursynth@v0.0.1
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - uses: actions/setup-python@v4
+        with:
+          cache: poetry
+
+      - name: Install deps
+        run: poetry install
+
+      - name: Lint code
+        run: poetry run poe lint
+
+  publish-pypi:
+    name: Release to PyPI
+    if: github.event_name == 'release' && github.event.action == 'created'
+    needs: [lint]
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install poetry
+        run: |
+          pipx install poetry
+          pipx inject poetry poetry-dynamic-versioning[plugin]
+
+      - uses: actions/setup-python@v4
+
+      - name: Build package
+        run: poetry build
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.8.6
