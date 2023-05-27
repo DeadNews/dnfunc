@@ -26,7 +26,7 @@ pyyaml = "^6.0"
 vstools = "^2.1.0"
 vsutil = "^0.8.0"
 
-[tool.poetry.group.ci.dependencies]
+[tool.poetry.group.lint.dependencies]
 black = "^23.3.0"
 mypy = "^1.2.0"
 poethepoet = "^0.20.0"
