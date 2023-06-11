@@ -187,14 +187,14 @@ files = [
 
 [[package]]
 name = "lvsfunc"
-version = "0.7.1"
+version = "0.8.0"
 description = "Light's Vapoursynth Functions."
 category = "main"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "lvsfunc-0.7.1-py3-none-any.whl", hash = "sha256:5e0cb910f7130a1360bf12608d402fbfc22a5c4411e0f94549dc0b04444fd613"},
-    {file = "lvsfunc-0.7.1.tar.gz", hash = "sha256:473ad678fdada99d262f5430d5a0f5c967814199a13175304c24574cd5552b64"},
+    {file = "lvsfunc-0.8.0-py3-none-any.whl", hash = "sha256:a2f23d5d0b0af05384f13f07b5aca6047931200154377204bc827a560b81e8a0"},
+    {file = "lvsfunc-0.8.0.tar.gz", hash = "sha256:ef7f95e80d4f7a90b2d2a940737a1666c53e811a7d2722100921f515715c1fbe"},
 ]
 
 [package.dependencies]
@@ -668,4 +668,4 @@ vapoursynth = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "b0d889fb70eef314c5e19ed92105b2c13b5228def2746800b5f6b5b89257b835"
+content-hash = "7c334d7e49184e3d6d8eb14394c79eeb740b4a1e417d7b69a5b46ed73c1d2e77"
