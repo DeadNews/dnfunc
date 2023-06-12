@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Setup vapoursynth
-        uses: deadnews/setup-vapoursynth@v0.0.2
+        uses: deadnews/setup-vapoursynth@v1.0.0
 
       - name: Install poetry
         run: pipx install poetry
