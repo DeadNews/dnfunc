@@ -237,7 +237,7 @@ def save_titles(
     return masked_merge(saved_titles, oped_clip, mask=mask, yuv=False)
 
 
-def oped(  # noqa: PLR0913
+def oped(
     clip: VideoNode,
     name: str,
     offset: int,
