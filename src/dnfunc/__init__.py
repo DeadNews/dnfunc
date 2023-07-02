@@ -852,8 +852,8 @@ def pw(
     mrgc: VideoNode,
     masks: Iterable[int] = (3, 4),
     mask_zone: str = "",
-    epis: VideoNode = None,
-    clip: VideoNode = None,
+    epis: VideoNode | None = None,
+    clip: VideoNode | None = None,
     clip2_zone: str = "",
     ext_rip: VideoNode | None = None,
 ) -> VideoNode:
@@ -1046,8 +1046,8 @@ def diff_rescale_mask(source: VideoNode, dset: AASettings) -> VideoNode:
 
 
 def rfs_resc(
-    mrgc: VideoNode = None,
-    epis: VideoNode = None,
+    mrgc: VideoNode | None = None,
+    epis: VideoNode | None = None,
     zone: str = "",
     maps: Maps | None = None,
     filt: VideoFunc1 | None = None,
@@ -1356,7 +1356,7 @@ class SsharpSettings:
 def rfs_sharp(
     clip: VideoNode,
     zone: str = "",
-    maps: Maps = None,
+    maps: Maps | None = None,
     out_mask: bool = False,
     **override: Any,
 ) -> VideoNode:
