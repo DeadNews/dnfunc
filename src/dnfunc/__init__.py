@@ -5,7 +5,7 @@ from dataclasses import dataclass, field, replace
 from functools import partial
 from pathlib import Path, PurePath
 from shutil import which
-from typing import Any, NamedTuple, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Any, NamedTuple, TypeAlias
 
 import havsfunc as hav
 import insane_aa as iaa
@@ -15,7 +15,9 @@ from vstools import FrameRange, FrameRangeN, FrameRangesN, rfs
 from vsutil import depth, get_depth, get_y, iterate, join, split
 from yaml import safe_load
 
-T = TypeVar("T")
+if TYPE_CHECKING:
+    from dataclasses import _DataclassT  # noqa: TCH004
+
 Maps: TypeAlias = FrameRangeN | FrameRangesN
 VideoFunc1: TypeAlias = Callable[[VideoNode], VideoNode]
 VideoFunc2: TypeAlias = Callable[[VideoNode, VideoNode], VideoNode]
@@ -30,7 +32,12 @@ def load_yaml(file_path: str) -> dict | None:
     return safe_load(f1.read_text()) if f1.is_file() else None
 
 
-def override_dc(data_class: T, block: str, zone: str = "", **override: Any) -> T:
+def override_dc(
+    data_class: _DataclassT,
+    block: str,
+    zone: str = "",
+    **override: Any,
+) -> _DataclassT:
     """
     Override default data_class params.
 
@@ -47,14 +54,14 @@ def override_dc(data_class: T, block: str, zone: str = "", **override: Any) -> T
 
         if block_settings is not None:
             # yaml main
-            data_class = replace(data_class, **block_settings["main"])  # type: ignore[type-var]
+            data_class = replace(data_class, **block_settings["main"])
 
             if zone and zone != "main":
                 # yaml zone
-                data_class = replace(data_class, **block_settings[zone])  # type: ignore[type-var]
+                data_class = replace(data_class, **block_settings[zone])
 
     # func params
-    return replace(data_class, **override)  # type: ignore[type-var]
+    return replace(data_class, **override)
 
 
 ######
