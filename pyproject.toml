@@ -5,7 +5,7 @@ build-backend = "poetry_dynamic_versioning.backend"
 [tool.poetry]
 name = "dnfunc"
 version = "0.0.0"
-description = "A collection of Vapoursynth functions and wrapperspoetr"
+description = "A collection of Vapoursynth functions and wrappers"
 authors = ["DeadNews <aurczpbgr@mozmail.com>"]
 license = "MIT"
 readme = "README.md"
