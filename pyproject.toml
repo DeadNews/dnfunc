@@ -30,7 +30,7 @@ vsutil = "^0.8.0"
 black = "^23.7.0"
 mypy = "^1.4.1"
 poethepoet = "^0.21.1"
-ruff = "^0.0.278"
+ruff = "^0.0.282"
 types-pyyaml = "^6.0.12.9"
 
 [tool.poetry.group.test.dependencies]
