@@ -29,7 +29,7 @@ vsutil = "^0.8.0"
 [tool.poetry.group.lint.dependencies]
 black = "^23.9.1"
 mypy = "^1.5.1"
-poethepoet = "^0.22.0"
+poethepoet = "^0.23.0"
 ruff = "^0.0.291"
 types-pyyaml = "^6.0.12.12"
 
