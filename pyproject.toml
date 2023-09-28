@@ -18,23 +18,23 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-vapoursynth = ">=60"
+python = "^3.11"
+vapoursynth = "^64"
 havsfunc = "^33"
 lvsfunc = "^0.8.0"
-pyyaml = "^6.0"
-vstools = "^2.1.0"
+pyyaml = "^6.0.1"
+vstools = "^2.3.0"
 vsutil = "^0.8.0"
 
 [tool.poetry.group.lint.dependencies]
-black = "^23.7.0"
-mypy = "^1.4.1"
-poethepoet = "^0.21.1"
-ruff = "^0.0.278"
-types-pyyaml = "^6.0.12.9"
+black = "^23.9.1"
+mypy = "^1.5.1"
+poethepoet = "^0.23.0"
+ruff = "^0.0.291"
+types-pyyaml = "^6.0.12.12"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.4.0"
+pytest = "^7.4.2"
 pytest-cov = "^4.1.0"
 
 [tool.poetry-dynamic-versioning]
@@ -80,6 +80,7 @@ allow_untyped_defs = true
 
 [tool.ruff]
 line-length = 99
+target-version = "py311" # until poetry v2
 select = ["ALL"]
 ignore = [
   "COM812",  # Trailing comma missing
