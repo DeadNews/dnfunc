@@ -27,14 +27,13 @@ vstools = "^2.3.0"
 vsutil = "^0.8.0"
 
 [tool.poetry.group.lint.dependencies]
-black = "^23.10.0"
 mypy = "^1.6.1"
 poethepoet = "^0.24.1"
 ruff = "^0.1.1"
 types-pyyaml = "^6.0.12.12"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.4.2"
+pytest = "^7.4.3"
 pytest-cov = "^4.1.0"
 
 [tool.poetry-dynamic-versioning]
@@ -44,9 +43,9 @@ style = "semver"
 
 [tool.poe.tasks]
 ruff = "ruff check ."
-black = "black --check ."
+ruff-format = "ruff format ."
 mypy = "mypy ."
-lint.sequence = ["ruff", "black", "mypy"]
+lint.sequence = ["ruff", "ruff-format", "mypy"]
 
 [tool.poe.tasks.test]
 cmd = "pytest --cov-report=xml"
@@ -63,9 +62,6 @@ exclude_lines = [
   "if TYPE_CHECKING:",
 ]
 
-[tool.black]
-line-length = 99
-
 [tool.mypy]
 disallow_untyped_defs = true
 follow_imports = "silent"
@@ -81,6 +77,11 @@ allow_untyped_defs = true
 [tool.ruff]
 line-length = 99
 target-version = "py311" # until poetry v2
+
+[tool.ruff.format]
+line-ending = "lf"
+
+[tool.ruff.lint]
 select = ["ALL"]
 ignore = [
   "COM812",  # Trailing comma missing
