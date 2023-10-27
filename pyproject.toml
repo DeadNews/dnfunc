@@ -29,7 +29,7 @@ vsutil = "^0.8.0"
 [tool.poetry.group.lint.dependencies]
 mypy = "^1.6.1"
 poethepoet = "^0.24.1"
-ruff = "^0.1.1"
+ruff = "^0.1.2"
 types-pyyaml = "^6.0.12.12"
 
 [tool.poetry.group.test.dependencies]
@@ -91,6 +91,7 @@ ignore = [
   "EXE001",  # Shebang is present but file is not executable
   "FBT001",  # Boolean positional arg in function definition
   "FBT002",  # Boolean default value in function definition
+  "ISC001",  # Checks for implicitly concatenated strings on a single line.
   "PLR0913", # Too many arguments to function call
   #
   "D101",    # Missing docstring in public class
