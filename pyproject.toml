@@ -44,8 +44,8 @@ style = "semver"
 [tool.poe.tasks]
 mypy = "mypy ."
 ruff = "ruff check ."
-ruff-format = "ruff format ."
-lint.sequence = ["ruff", "ruff-format", "mypy"]
+fmt = "ruff format ."
+lint.sequence = ["ruff", "fmt", "mypy"]
 
 [tool.poe.tasks.test]
 cmd = "pytest --cov-report=xml"
