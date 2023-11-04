@@ -23,7 +23,7 @@ vapoursynth = "^64"
 havsfunc = "^33"
 lvsfunc = "^0.8.0"
 pyyaml = "^6.0.1"
-vstools = "^2.3.0"
+vstools = "^3.0.0"
 vsutil = "^0.8.0"
 
 [tool.poetry.group.lint.dependencies]
