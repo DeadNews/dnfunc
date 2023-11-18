@@ -58,14 +58,14 @@ def override_dc(
 
         if block_settings is not None:
             # yaml main
-            data_class = replace(data_class, **block_settings["main"])  # type: ignore [misc]
+            data_class = replace(data_class, **block_settings["main"])
 
             if zone and zone != "main":
                 # yaml zone
-                data_class = replace(data_class, **block_settings[zone])  # type: ignore [misc]
+                data_class = replace(data_class, **block_settings[zone])
 
     # func params
-    return replace(data_class, **override)  # type: ignore [misc]
+    return replace(data_class, **override)
 
 
 ######

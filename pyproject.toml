@@ -19,15 +19,15 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-vapoursynth = "^64"
+vapoursynth = "^65"
 havsfunc = "^33"
 lvsfunc = "^0.8.0"
 pyyaml = "^6.0.1"
-vstools = "^2.3.0"
+vstools = "^3.0.1"
 vsutil = "^0.8.0"
 
 [tool.poetry.group.lint.dependencies]
-mypy = "^1.6.1"
+mypy = "^1.7.0"
 poethepoet = "^0.24.1"
 ruff = "^0.1.2"
 types-pyyaml = "^6.0.12.12"
@@ -44,8 +44,8 @@ style = "semver"
 [tool.poe.tasks]
 mypy = "mypy ."
 ruff = "ruff check ."
-fmt = "ruff format ."
-lint.sequence = ["ruff", "fmt", "mypy"]
+ruff-fmt = "ruff format ."
+lint.sequence = ["ruff", "ruff-fmt", "mypy"]
 
 [tool.poe.tasks.test]
 cmd = "pytest --cov-report=xml"
