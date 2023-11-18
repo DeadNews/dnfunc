@@ -28,8 +28,8 @@ vsutil = "^0.8.0"
 
 [tool.poetry.group.lint.dependencies]
 mypy = "^1.7.0"
-poethepoet = "^0.24.1"
-ruff = "^0.1.2"
+poethepoet = "^0.24.3"
+ruff = "^0.1.6"
 types-pyyaml = "^6.0.12.12"
 
 [tool.poetry.group.test.dependencies]
