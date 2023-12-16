@@ -24,7 +24,7 @@ jobs:
       - name: Install poetry
         run: pipx install poetry
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           cache: poetry
 
@@ -50,7 +50,7 @@ jobs:
           pipx install poetry
           pipx inject poetry poetry-dynamic-versioning[plugin]
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
 
       - name: Build package
         run: poetry build
