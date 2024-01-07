@@ -1,20 +1,23 @@
-poetry-install:
+.PHONY: test
+
+install-all: install pc-install
+
+install:
 	poetry install --sync
 
-poetry-up:
-	poetry up --latest
-
-pre-commit-install:
+pc-install:
 	pre-commit install
 
-pre-commit-up:
-	pre-commit autoupdate
+update-latest:
+	poetry up --latest
 
-pre-commit-run:
+checks: pc-run lint
+
+pc-run:
 	pre-commit run -a
 
 lint:
 	poetry run poe lint
 
-tests:
+test:
 	poetry run pytest
