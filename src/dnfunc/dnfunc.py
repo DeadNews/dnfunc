@@ -282,10 +282,9 @@ def oped(
             ncoped = ncoped_aa
             # ↑ if you want to keep the AA-Titles
         f2 = Path(f"./temp/{name}_filt_lossless.mp4")
-        if f2.is_file():
-            ncoped_aa = source(f2).std.Trim(offset, ncoped_end)
-        else:
-            ncoped_aa = filtr(ncoped_aa, ncoped)
+        ncoped_aa = (
+            source(f2).std.Trim(offset, ncoped_end) if f2.is_file() else filtr(ncoped_aa, ncoped)
+        )
 
     if not (oped_clip.num_frames == ncoped.num_frames == ncoped_aa.num_frames):
         msg = f"{oped_clip.num_frames=}, {ncoped.num_frames=}, {ncoped_aa.num_frames=}"
@@ -818,10 +817,11 @@ def source(
     """Load video source."""
     f1 = PurePath(file)
 
-    if f1.suffix == ".mp4":
-        src = vs.core.lsmas.LibavSMASHSource(source=f1)
-    else:
-        src = vs.core.lsmas.LWLibavSource(source=f1)
+    src = (
+        vs.core.lsmas.LibavSMASHSource(source=f1)
+        if f1.suffix == ".mp4"
+        else vs.core.lsmas.LWLibavSource(source=f1)
+    )
 
     if fpsnum and fpsden:
         src = src.std.AssumeFPS(fpsnum=fpsnum, fpsden=fpsden)
