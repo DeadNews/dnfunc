@@ -30,7 +30,14 @@ PROC_DEPTH = 16  # processing_depth
 
 
 def load_yaml(file_path: str) -> dict | None:
-    """Load yaml settings."""
+    """Load yaml settings from a file.
+
+    Args:
+        file_path: The path to the YAML file.
+
+    Returns:
+        The loaded YAML settings as a dictionary, or None if the file does not exist.
+    """
     f1 = Path(file_path)
 
     return safe_load(f1.read_text()) if f1.is_file() else None
@@ -42,14 +49,23 @@ def override_dc(
     zone: str = "",
     **override: Any,
 ) -> _DataclassT:
-    """
-    Override default data_class params.
+    """Override default data_class params.
 
-    Configuration preference order:
-    1. func params
-    2. yaml zone
-    3. yaml main
-    4. default
+    Notes:
+        Configuration preference order:
+        1. func params
+        2. yaml zone
+        3. yaml main
+        4. default
+
+    Args:
+        data_class: The original data class object.
+        block: The block name to retrieve settings from.
+        zone: The zone name to retrieve settings from.
+        **override: Any additional keyword arguments to override the data class.
+
+    Returns:
+        The data class object with overridden parameters.
     """
     settings = load_yaml("./settings.yaml")
 
@@ -74,16 +90,33 @@ def override_dc(
 
 
 class NumFramesError(Exception):
-    pass
+    """Exception raised for errors related to the number of frames.
+
+    Attributes:
+        message -- explanation of the error
+    """
 
 
 class Edi3Mode(NamedTuple):
+    """Represents the configuration for eedi3/nnedi3.
+
+    Attributes:
+        eedi3_mode: The EEDI3 mode.
+        device: The device number.
+        nnedi3_mode: The NNEDI3 mode.
+    """
+
     eedi3_mode: iaa.EEDI3Mode
     device: int
     nnedi3_mode: iaa.NNEDI3Mode
 
 
 def get_edi3_mode() -> Edi3Mode:
+    """Returns the Edi3Mode based on the availability of the `nvidia-smi` command.
+
+    Returns:
+        The Edi3Mode based on the availability of `nvidia-smi`.
+    """
     if which("nvidia-smi") is not None:
         return Edi3Mode(
             eedi3_mode=iaa.EEDI3Mode.OPENCL,
@@ -190,7 +223,18 @@ def aa(
     ext_mask: vs.VideoNode | None = None,
     **override: Any,
 ) -> vs.VideoNode:
-    """Anti-aliasing wrapper."""
+    """Anti-aliasing wrapper.
+
+    Args:
+        clip: Input video clip.
+        zone: Zone parameter.
+        epname: Episode name.
+        ext_mask: External mask.
+        **override: Additional override parameters.
+
+    Returns:
+        Anti-aliased video clip.
+    """
     if epname:
         f1 = Path(f"./temp/{epname}_aa_lossless.mp4")
         if f1.is_file():
@@ -503,6 +547,18 @@ def bm3d_(
     sm_thr: int = 48,
     sm_pref_mode: int = 1,
 ) -> vs.VideoNode:
+    """Apply BM3D denoising to the input clip.
+
+    Args:
+        clip: Input video clip.
+        bm_sigma: Sigma parameter for BM3D.
+        bm_radius: Radius parameter for BM3D.
+        sm_thr: Threshold parameter for smdegrain.
+        sm_pref_mode: Prefilter mode for smdegrain.
+
+    Returns:
+        Denoised video clip.
+    """
     from mvsfunc import BM3D
 
     planes = split(clip)
@@ -558,6 +614,18 @@ def filt(  # noqa: PLR0911, PLR0912, PLR0915, C901
     prefilt_func: VideoFunc | None = None,
     **override: Any,
 ) -> vs.VideoNode:
+    """Apply various filters and denoising techniques to the input video clip.
+
+    Args:
+        mrgc: The input video clip.
+        zone: The zone to apply the filters to.
+        out_mode: The output mode.
+        prefilt_func: The pre-filter function.
+        **override: Additional parameters to override the default filter settings.
+
+    Returns:
+        The filtered video clip.
+    """
     fset = FilterSettings()
     fset = override_dc(fset, block="filt", zone=zone, **override)
 
@@ -1004,10 +1072,14 @@ def rfs_diff(
 
 
 def diff_rescale_mask(source: vs.VideoNode, dset: AASettings) -> vs.VideoNode:
-    """
-    Build mask from difference of original and re-upscales clips.
+    """Build mask from difference of original and re-upscales clips.
 
-    Based on atomchtools.
+    Args:
+        source: The original video clip.
+        dset: The settings for the anti-aliasing process.
+
+    Returns:
+        The mask representing the difference between the original and re-upscaled clips.
     """
     from descale import Descale
     from fvsfunc import Resize
@@ -1141,8 +1213,7 @@ class QTGMCSettings:
 
 
 def qtgmc(clip: vs.VideoNode, zone: str = "", **override: Any) -> vs.VideoNode:
-    """
-    QTGMC.
+    """QTGMC.
 
     InputType — 0 for interlaced input. Mode 1 is for general progressive material.
     Modes 2 & 3 are designed for badly deinterlaced material.
@@ -1601,8 +1672,7 @@ def to60fps(clip: vs.VideoNode, mode: str = "svp") -> vs.VideoNode:
 
 
 def chromashift(clip: vs.VideoNode, cx: int = 0, cy: int = 0) -> vs.VideoNode:
-    """
-    Shift hroma.
+    """Shift hroma.
 
     cx — Horizontal chroma shift. Positive value shifts chroma to left, negative value shifts chroma to right.
     cy — Vertical chroma shift. Positive value shifts chroma upwards, negative value shifts chroma downwards.
@@ -1813,6 +1883,18 @@ def pv_diff(
     name: str = "",
     exclude_ranges: list[FrameRange] | None = None,
 ) -> vs.VideoNode:
+    """Perform pixel value difference between two video clips.
+
+    Args:
+        tv: The first video clip.
+        bd: The second video clip.
+        thr: The threshold for considering a difference.
+        name: The name to be logged.
+        exclude_ranges: List of frame ranges to exclude from comparison.
+
+    Returns:
+        The comparison result.
+    """
     from lvsfunc import diff
 
     clips = [tv, bd]
