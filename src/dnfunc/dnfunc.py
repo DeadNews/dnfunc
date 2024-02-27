@@ -10,11 +10,12 @@ from typing import TYPE_CHECKING, NamedTuple
 
 import havsfunc as hav
 import insane_aa as iaa
-import kagefunc as kg
 import vapoursynth as vs
 from vstools import rfs
 from vsutil import depth, get_depth, get_y, iterate, join, split
 from yaml import safe_load
+
+import vendor.kagefunc as kg
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -344,7 +345,7 @@ def oped(
 
 def gradfun_mask(source: vs.VideoNode, thr_det: float = 1, mode: int = 3) -> vs.VideoNode:
     """Stolen from fvsfunc."""
-    from muvsfunc import _Build_gf3_range_mask as gf3_range_mask
+    from vendor.muvsfunc import _Build_gf3_range_mask as gf3_range_mask
 
     src_y = get_y(source)
     src_8 = depth(src_y, 8)
@@ -493,7 +494,7 @@ def contrasharp(
     sm_thr: int,
     cs_val: float,
 ) -> tuple[vs.VideoNode, vs.VideoNode]:
-    from CSMOD import CSMOD
+    from vendor.CSMOD import CSMOD
 
     contrasharped = CSMOD(
         clip,
@@ -990,11 +991,6 @@ def _mask_resize(
     mask: vs.VideoNode,
     format_src: vs.VideoNode | None = None,  # noqa: ARG001
 ) -> vs.VideoNode:
-    # if format_src:
-    #     mask_format = format_src.format.replace(color_family=GRAY, subsampling_w=0, subsampling_h=0)
-    # else:
-    #     mask_format = vs.GRAY16
-
     mask_format = vs.GRAY16
 
     return (
@@ -1081,8 +1077,8 @@ def diff_rescale_mask(source: vs.VideoNode, dset: AASettings) -> vs.VideoNode:
     Returns:
         The mask representing the difference between the original and re-upscaled clips.
     """
-    from descale import Descale
-    from fvsfunc import Resize
+    from vendor.descale import Descale
+    from vendor.fvsfunc import Resize
 
     clip = get_y(source) if source.format.num_planes != 1 else source
 
@@ -1152,7 +1148,7 @@ def rfs_resc(
 
 
 def _hard(clip: vs.VideoNode, mthr: int, yuv: bool = False) -> vs.VideoNode:
-    from HardAA import HardAA
+    from vendor.HardAA import HardAA
 
     return HardAA(
         clip=clip,
@@ -1468,7 +1464,7 @@ def rfs_sharp(
     if shset.mode == "cas":
         sharp = vs.core.cas.CAS(clip, sharpness=shset.sharp)
     elif shset.mode == "finesharp":
-        from finesharp import sharpen
+        from vendor.finesharp import sharpen
 
         sharp = sharpen(clip, sstr=sharp)
 
@@ -1693,7 +1689,7 @@ def adaptive_chromashift(  # noqa: PLR0915
     """Chromashift with comparisons for floating chromashift."""
 
     def make_diff(clip: vs.VideoNode) -> vs.VideoNode:
-        from fvsfunc import Downscale444
+        from vendor.fvsfunc import Downscale444
 
         desc_h = 720
         desc_w = hav.m4((clip.width * desc_h) / clip.height)
