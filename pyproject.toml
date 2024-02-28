@@ -21,13 +21,20 @@ classifiers = [
 python = "^3.11"
 vapoursynth = "^65"
 havsfunc = "^33"
-insane-aa = { git = "https://github.com/DeadNews/vs-insane-aa.git", branch = "dev" }
 lvsfunc = "^0.8.0"
 mvsfunc = { git = "https://github.com/HomeOfVapourSynthEvolution/mvsfunc.git" }
 pyyaml = "^6.0.1"
-vstools = "^3.0.1"
+vstools = "==3.0.1"
 vsutil = "^0.8.0"
-vendor = { path = "vendor/", develop = false }
+# vendor
+csmod = { path = "vendor/csmod/" }
+descale = { path = "vendor/descale/" }
+finesharp = { path = "vendor/finesharp/" }
+fvsfunc = { path = "vendor/fvsfunc/" }
+hard_aa = { path = "vendor/hard_aa/" }
+insane_aa = { path = "vendor/insane_aa/" }
+kagefunc = { path = "vendor/kagefunc/" }
+muvsfunc = { path = "vendor/muvsfunc/" }
 
 [tool.poetry.group.lint.dependencies]
 mypy = "^1.8.0"
@@ -36,7 +43,7 @@ ruff = "^0.2.1"
 types-pyyaml = "^6.0.12.12"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^8.0.0"
+pytest = "^8.0.2"
 pytest-cov = "^4.1.0"
 
 [tool.poetry-dynamic-versioning]
