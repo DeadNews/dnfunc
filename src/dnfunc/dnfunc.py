@@ -1,32 +1,28 @@
 #!/usr/bin/env python
 """A collection of Vapoursynth functions and wrappers."""
-from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from collections.abc import Callable, Iterable
+from dataclasses import _DataclassT, dataclass, field, replace
 from functools import partial
 from pathlib import Path, PurePath
 from shutil import which
-from typing import TYPE_CHECKING, NamedTuple
+from typing import Any, NamedTuple, TypeAlias
 
 import havsfunc as hav
 import insane_aa as iaa
 import kagefunc as kg
 import vapoursynth as vs
-from vstools import rfs
+from vstools import FrameRange, FrameRangeN, FrameRangesN, rfs
 from vsutil import depth, get_depth, get_y, iterate, join, split
 from yaml import safe_load
 
-if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
-    from dataclasses import _DataclassT
-    from typing import Any, TypeAlias
+Maps: TypeAlias = FrameRangeN | FrameRangesN
+"""Maps type alias."""
+VideoFunc: TypeAlias = Callable[..., vs.VideoNode]
+"""VideoFunc type alias."""
 
-    from vstools import FrameRange, FrameRangeN, FrameRangesN
-
-    Maps: TypeAlias = FrameRangeN | FrameRangesN
-    VideoFunc: TypeAlias = Callable[..., vs.VideoNode]
-
-PROC_DEPTH = 16  # processing_depth
+PROC_DEPTH = 16
+"""The processing depth."""
 
 
 def load_yaml(file_path: str) -> dict | None:
@@ -990,11 +986,6 @@ def _mask_resize(
     mask: vs.VideoNode,
     format_src: vs.VideoNode | None = None,  # noqa: ARG001
 ) -> vs.VideoNode:
-    # if format_src:
-    #     mask_format = format_src.format.replace(color_family=GRAY, subsampling_w=0, subsampling_h=0)
-    # else:
-    #     mask_format = vs.GRAY16
-
     mask_format = vs.GRAY16
 
     return (
@@ -1491,7 +1482,7 @@ class EdgeFixSettings:
     def to_list(val: int | list[int]) -> list[int]:
         return val if isinstance(val, list) else [val, 0, 0]
 
-    def check_yuv(self: EdgeFixSettings) -> None:
+    def check_yuv(self: "EdgeFixSettings") -> None:
         self.yuv = any(
             isinstance(val, list)
             for val in (self.top, self.bottom, self.left, self.right, self.radius)
