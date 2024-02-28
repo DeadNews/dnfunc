@@ -76,71 +76,6 @@ files = [
 toml = ["tomli"]
 
 [[package]]
-name = "csmod"
-version = "0.0.0"
-description = ""
-optional = false
-python-versions = ">=3.8"
-files = []
-develop = false
-
-[package.source]
-type = "directory"
-url = "vendor/csmod"
-
-[[package]]
-name = "descale"
-version = "0.0.0"
-description = ""
-optional = false
-python-versions = ">=3.8"
-files = []
-develop = false
-
-[package.source]
-type = "directory"
-url = "vendor/descale"
-
-[[package]]
-name = "finesharp"
-version = "0.0.0"
-description = ""
-optional = false
-python-versions = ">=3.8"
-files = []
-develop = false
-
-[package.source]
-type = "directory"
-url = "vendor/finesharp"
-
-[[package]]
-name = "fvsfunc"
-version = "0.0.0"
-description = ""
-optional = false
-python-versions = ">=3.8"
-files = []
-develop = false
-
-[package.source]
-type = "directory"
-url = "vendor/fvsfunc"
-
-[[package]]
-name = "hard_aa"
-version = "0.0.0"
-description = ""
-optional = false
-python-versions = ">=3.8"
-files = []
-develop = false
-
-[package.source]
-type = "directory"
-url = "vendor/hard_aa"
-
-[[package]]
 name = "havsfunc"
 version = "33"
 description = "Holy's ported AviSynth functions for VapourSynth"
@@ -164,32 +99,6 @@ files = [
     {file = "iniconfig-2.0.0-py3-none-any.whl", hash = "sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374"},
     {file = "iniconfig-2.0.0.tar.gz", hash = "sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3"},
 ]
-
-[[package]]
-name = "insane_aa"
-version = "0.0.0"
-description = ""
-optional = false
-python-versions = ">=3.8"
-files = []
-develop = false
-
-[package.source]
-type = "directory"
-url = "vendor/insane_aa"
-
-[[package]]
-name = "kagefunc"
-version = "0.0.0"
-description = ""
-optional = false
-python-versions = ">=3.8"
-files = []
-develop = false
-
-[package.source]
-type = "directory"
-url = "vendor/kagefunc"
 
 [[package]]
 name = "lvsfunc"
@@ -241,19 +150,6 @@ files = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
     {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
 ]
-
-[[package]]
-name = "muvsfunc"
-version = "0.0.0"
-description = ""
-optional = false
-python-versions = ">=3.8"
-files = []
-develop = false
-
-[package.source]
-type = "directory"
-url = "vendor/muvsfunc"
 
 [[package]]
 name = "mvsfunc"
@@ -650,4 +546,4 @@ vapoursynth = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "d4b3cb4904f5d287727608c29baec9b2c07d75b540129b8d5de8f174bf6b5872"
+content-hash = "b025766fc90fc9766b6e22f194ddb2d6bfbdef2eb06dadffca15c6adc30ec77c"
