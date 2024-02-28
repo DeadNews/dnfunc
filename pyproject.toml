@@ -16,6 +16,7 @@ classifiers = [
   "Operating System :: OS Independent",
   "Topic :: Multimedia :: Video",
 ]
+packages = [{ include = "vendor" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -24,9 +25,8 @@ havsfunc = "^33"
 lvsfunc = "^0.8.0"
 mvsfunc = { git = "https://github.com/HomeOfVapourSynthEvolution/mvsfunc.git" }
 pyyaml = "^6.0.1"
-vstools = "==3.0.1"
+vstools = "^3.0.1"
 vsutil = "^0.8.0"
-# vendor
 csmod = { path = "vendor/csmod/" }
 descale = { path = "vendor/descale/" }
 finesharp = { path = "vendor/finesharp/" }
