@@ -16,7 +16,7 @@ classifiers = [
   "Operating System :: OS Independent",
   "Topic :: Multimedia :: Video",
 ]
-packages = [{ include = "vendor" }]
+# packages = [{ include = "vendor" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -28,14 +28,14 @@ pyyaml = "^6.0.1"
 vstools = "^3.1.0"
 stgpytools = { git = "https://github.com/Setsugennoao/stgpytools.git" }         # temporary
 vsutil = "^0.8.0"
-csmod = { path = "vendor/csmod/" }
-descale = { path = "vendor/descale/" }
-finesharp = { path = "vendor/finesharp/" }
-fvsfunc = { path = "vendor/fvsfunc/" }
-hard_aa = { path = "vendor/hard_aa/" }
-insane_aa = { path = "vendor/insane_aa/" }
-kagefunc = { path = "vendor/kagefunc/" }
-muvsfunc = { path = "vendor/muvsfunc/" }
+# csmod = { path = "vendor/csmod/" }
+# descale = { path = "vendor/descale/" }
+# finesharp = { path = "vendor/finesharp/" }
+# fvsfunc = { path = "vendor/fvsfunc/" }
+# hard_aa = { path = "vendor/hard_aa/" }
+# insane_aa = { path = "vendor/insane_aa/" }
+# kagefunc = { path = "vendor/kagefunc/" }
+# muvsfunc = { path = "vendor/muvsfunc/" }
 
 [tool.poetry.group.lint.dependencies]
 mypy = "^1.8.0"
