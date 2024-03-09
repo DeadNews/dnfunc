@@ -422,13 +422,13 @@ files = [
 
 [[package]]
 name = "stgpytools"
-version = "1.0.3"
+version = "1.0.5"
 description = "Collection of stuff that's useful in general python programming"
 optional = false
 python-versions = ">=3.11"
 files = [
-    {file = "stgpytools-1.0.3-py3-none-any.whl", hash = "sha256:c17ca66457bac7e4a0a62abefa93d336b25af77d80db50d2df9947604b73f55b"},
-    {file = "stgpytools-1.0.3.tar.gz", hash = "sha256:3e9dfc43bddd55f31970fa00339d6e8592df5a63dfc8f0d85062614e56ed33ad"},
+    {file = "stgpytools-1.0.5-py3-none-any.whl", hash = "sha256:dcfa18ba268de503740a7b67ce35f00d518f3ff8af29d9801eb15d66a73e3dbc"},
+    {file = "stgpytools-1.0.5.tar.gz", hash = "sha256:5827a5d34264d56901ab53fc58b04210f81d7f13c64aee0646af9206d7fb5fcc"},
 ]
 
 [[package]]
@@ -493,18 +493,18 @@ vstools = ">=3.0.0"
 
 [[package]]
 name = "vstools"
-version = "3.0.1"
+version = "3.1.0"
 description = "Functions and utils related to VapourSynth"
 optional = false
 python-versions = ">=3.11"
 files = [
-    {file = "vstools-3.0.1-py3-none-any.whl", hash = "sha256:d0cef936b20e88d5359ca054408a2d24d3e5f8367bc82a29e75dff5baef4542f"},
-    {file = "vstools-3.0.1.tar.gz", hash = "sha256:d5b25a694833d7722864fea1828cb5067bd52bc772f27dad1b12c07700af0197"},
+    {file = "vstools-3.1.0-py3-none-any.whl", hash = "sha256:3bb7d49a2891a0a19a5458e785b87efe6cf72b4abae48eeead4c34b6332c330d"},
+    {file = "vstools-3.1.0.tar.gz", hash = "sha256:5df2f31086190e943e818654b7c86c830278ec8cb90720974160b208f40cb693"},
 ]
 
 [package.dependencies]
 rich = ">=12.6.0"
-stgpytools = ">=1.0.0"
+stgpytools = ">=1.0.4"
 VapourSynth = ">=65"
 
 [[package]]
