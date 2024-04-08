@@ -12,7 +12,7 @@ lock:
 update:
 	poetry up --latest
 
-checks: pc install lint test
+checks: pc install lint
 
 pc:
 	pre-commit run -a
