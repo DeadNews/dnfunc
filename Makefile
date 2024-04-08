@@ -23,12 +23,6 @@ lint:
 test:
 	poetry run poe test
 
-docs:
-	poetry run mkdocs serve
-
-run:
-	poetry run uvicorn --reload deadnews_template_python:app
-
 bumped:
 	git cliff --bumped-version
 
