@@ -338,15 +338,15 @@ def oped(
 ##########
 
 
-def gradfun_mask(source: vs.VideoNode, thr_det: float = 1, mode: int = 3) -> vs.VideoNode:
+def gradfun_mask(source: vs.VideoNode, the_det: float = 1, mode: int = 3) -> vs.VideoNode:
     """Stolen from fvsfunc."""
     from muvsfunc import _Build_gf3_range_mask as gf3_range_mask
 
     src_y = get_y(source)
     src_8 = depth(src_y, 8)
 
-    tl = max(thr_det * 0.75, 1.0) - 0.0001
-    th = max(thr_det, 1.0) + 0.0001
+    tl = max(the_det * 0.75, 1.0) - 0.0001
+    th = max(the_det, 1.0) + 0.0001
     mexpr = f"x {tl} - {th} {tl} - / 255 *"
 
     if mode > 0:
@@ -382,10 +382,10 @@ def adaptive_debandmask(
 ) -> vs.VideoNode:
     for zone in yaml:
         db_mode = yaml[zone]["db_mode"]
-        thr_det = yaml[zone]["db_thr"]
+        the_det = yaml[zone]["db_the"]
         scaling = yaml[zone]["scaling"]
 
-        db_n = gradfun_mask(source=source, thr_det=thr_det, mode=db_mode)
+        db_n = gradfun_mask(source=source, the_det=the_det, mode=db_mode)
         db_mask = adaptive_mix(
             clip=clip,
             f1=db_mask,
@@ -402,11 +402,11 @@ def adaptive_debandmask(
 
 def adaptive_smdegrain(clip: vs.VideoNode, smdegrain: vs.VideoNode, yaml: dict) -> vs.VideoNode:
     for zone in yaml:
-        sm_thr = yaml[zone]["sm_thr"]
+        sm_the = yaml[zone]["sm_the"]
         sm_pref_mode = yaml[zone]["sm_pref_mode"]
         scaling = yaml[zone]["scaling"]
 
-        dn_n = smdegrain_(clip=clip, sm_thr=sm_thr, sm_pref_mode=sm_pref_mode)
+        dn_n = smdegrain_(clip=clip, sm_the=sm_the, sm_pref_mode=sm_pref_mode)
 
         smdegrain = adaptive_mix(clip=clip, f1=smdegrain, f2=dn_n, scaling=scaling, yuv=True)
 
@@ -486,7 +486,7 @@ def contrasharp(
     clip: vs.VideoNode,
     source: vs.VideoNode,
     cs_mask: vs.VideoNode,
-    sm_thr: int,
+    sm_the: int,
     cs_val: float,
 ) -> tuple[vs.VideoNode, vs.VideoNode]:
     from CSMOD import CSMOD
@@ -496,7 +496,7 @@ def contrasharp(
         source=source,
         preset="detail",
         edgemask=cs_mask,
-        thSAD=sm_thr,
+        thSAD=sm_the,
     )
     clip_expr = vs.core.std.Expr([contrasharped, clip], f"x {cs_val} * y 1 {cs_val} - * +")
 
@@ -507,7 +507,7 @@ def _out_mask(mask: vs.VideoNode) -> vs.VideoNode:
     return vs.core.resize.Point(mask, format=vs.YUV420P10, matrix_s="709")
 
 
-def smdegrain_(clip: vs.VideoNode, sm_thr: int = 48, sm_pref_mode: int = 1) -> vs.VideoNode:
+def smdegrain_(clip: vs.VideoNode, sm_the: int = 48, sm_pref_mode: int = 1) -> vs.VideoNode:
     sm_set = {
         "prefilter": sm_pref_mode,
         "tr": 4,
@@ -515,21 +515,21 @@ def smdegrain_(clip: vs.VideoNode, sm_thr: int = 48, sm_pref_mode: int = 1) -> v
         "contrasharp": False,
     }
 
-    if isinstance(sm_thr, int):
-        return hav.SMDegrain(clip, thSAD=sm_thr, plane=4, chroma=True, **sm_set)
+    if isinstance(sm_the, int):
+        return hav.SMDegrain(clip, thSAD=sm_the, plane=4, chroma=True, **sm_set)
 
-    if isinstance(sm_thr, list):
-        while len(sm_thr) < 3:
-            sm_thr.append(sm_thr[len(sm_thr) - 1])
+    if isinstance(sm_the, list):
+        while len(sm_the) < 3:
+            sm_the.append(sm_the[len(sm_the) - 1])
 
         if clip.format.num_planes == 1:
-            return hav.SMDegrain(clip, thSAD=sm_thr[0], **sm_set)
+            return hav.SMDegrain(clip, thSAD=sm_the[0], **sm_set)
 
         planes = split(clip)
 
-        planes[0] = hav.SMDegrain(planes[0], thSAD=sm_thr[0], **sm_set)
-        planes[1] = hav.SMDegrain(planes[1], thSAD=sm_thr[1], **sm_set)
-        planes[2] = hav.SMDegrain(planes[2], thSAD=sm_thr[2], **sm_set)
+        planes[0] = hav.SMDegrain(planes[0], thSAD=sm_the[0], **sm_set)
+        planes[1] = hav.SMDegrain(planes[1], thSAD=sm_the[1], **sm_set)
+        planes[2] = hav.SMDegrain(planes[2], thSAD=sm_the[2], **sm_set)
 
         return join(planes)
 
@@ -540,7 +540,7 @@ def bm3d_(
     clip: vs.VideoNode,
     bm_sigma: float = 2,
     bm_radius: float = 1,
-    sm_thr: int = 48,
+    sm_the: int = 48,
     sm_pref_mode: int = 1,
 ) -> vs.VideoNode:
     """Apply BM3D denoising to the input clip.
@@ -549,7 +549,7 @@ def bm3d_(
         clip: Input video clip.
         bm_sigma: Sigma parameter for BM3D.
         bm_radius: Radius parameter for BM3D.
-        sm_thr: Threshold parameter for smdegrain.
+        sm_the: Threshold parameter for smdegrain.
         sm_pref_mode: Prefilter mode for smdegrain.
 
     Returns:
@@ -560,8 +560,8 @@ def bm3d_(
     planes = split(clip)
 
     planes[0] = BM3D(planes[0], sigma=bm_sigma, radius1=bm_radius)
-    planes[1] = smdegrain_(planes[1], sm_thr=sm_thr, sm_pref_mode=sm_pref_mode)
-    planes[2] = smdegrain_(planes[2], sm_thr=sm_thr, sm_pref_mode=sm_pref_mode)
+    planes[1] = smdegrain_(planes[1], sm_the=sm_the, sm_pref_mode=sm_pref_mode)
+    planes[2] = smdegrain_(planes[2], sm_the=sm_the, sm_pref_mode=sm_pref_mode)
 
     return join(planes)
 
@@ -573,7 +573,7 @@ class FilterSettings:
     dn_ttsmooth: bool = False
     bm_sigma: float = 2.0
     bm_radius: int = 1
-    sm_thr: int = 40
+    sm_the: int = 40
     sm_pref_mode: int = 1
     dn_pref: bool = False
     dn_pref_scaling: float = 0.0
@@ -584,7 +584,7 @@ class FilterSettings:
     cs_mode: int = 1
     cs_val: float = 0.5
     cs_merge: int = 0
-    db_thr: float = 2.1
+    db_the: float = 2.1
     db_mode: int = 3
     db_gf_mode: int = 2
     db_rt_mode: int = 2
@@ -648,7 +648,7 @@ def filt(  # noqa: PLR0911, PLR0912, PLR0915, C901
         if fset.dn_mode == "smdegrain":
             full_denoise = smdegrain_(
                 clip=src_denoise,
-                sm_thr=fset.sm_thr,
+                sm_the=fset.sm_the,
                 sm_pref_mode=fset.sm_pref_mode,
             )
             if fset.dn_adaptive is not None:
@@ -663,7 +663,7 @@ def filt(  # noqa: PLR0911, PLR0912, PLR0915, C901
                 src_denoise,
                 bm_sigma=fset.bm_sigma,
                 bm_radius=fset.bm_radius,
-                sm_thr=fset.sm_thr,
+                sm_the=fset.sm_the,
                 sm_pref_mode=fset.sm_pref_mode,
             )
 
@@ -692,7 +692,7 @@ def filt(  # noqa: PLR0911, PLR0912, PLR0915, C901
             if fset.dn_pref_mul:
                 rt_mask_denoised_x2 = smdegrain_(
                     clip=rt_mask_denoised,
-                    sm_thr=fset.sm_thr * fset.dn_pref_mul,
+                    sm_the=fset.sm_the * fset.dn_pref_mul,
                     sm_pref_mode=fset.sm_pref_mode,
                 )
                 if fset.db_rt_mode == 4 and fset.db_adaptive is not None:
@@ -729,7 +729,7 @@ def filt(  # noqa: PLR0911, PLR0912, PLR0915, C901
                 clip=denoised,
                 source=clip16,
                 cs_mask=cs_mask,
-                sm_thr=fset.sm_thr,
+                sm_the=fset.sm_the,
                 cs_val=fset.cs_val,
             )
             if not fset.cs_merge:
@@ -741,7 +741,7 @@ def filt(  # noqa: PLR0911, PLR0912, PLR0915, C901
                     cs_mask_merge = cs_mask.std.Inflate()
                 denoised = masked_merge(denoised, denoised_expr, mask=cs_mask_merge, yuv=True)
 
-    if fset.db_thr == 0:
+    if fset.db_the == 0:
         debanded = denoised
     else:
         debanded = f3kdb_deband(
@@ -760,7 +760,7 @@ def filt(  # noqa: PLR0911, PLR0912, PLR0915, C901
         elif fset.db_gf_mode == 4:
             gradfun_src = full_denoise
 
-        db_mask = gradfun_mask(source=gradfun_src, thr_det=fset.db_thr, mode=fset.db_mode)
+        db_mask = gradfun_mask(source=gradfun_src, the_det=fset.db_the, mode=fset.db_mode)
 
         if out_mode == 2:
             db_mask_gradfun = db_mask
@@ -1380,7 +1380,7 @@ class RepairSettings:
         default_factory=lambda: ({"strength": 10, "rmode": 13, "smode": 1}),
     )
     dering_args: dict[str, int] = field(
-        default_factory=lambda: ({"mrad": 2, "mthr": 70, "thr": 12, "darkthr": 3}),
+        default_factory=lambda: ({"mrad": 2, "mthr": 70, "the": 12, "darkthr": 3}),
     )
     mode: str = "kirsch"
     max_c: int = 3
@@ -1870,7 +1870,7 @@ def get_list(ranges: list[FrameRange]) -> list[int]:
 def pv_diff(
     tv: vs.VideoNode,
     bd: vs.VideoNode,
-    thr: float = 72,
+    the: float = 72,
     name: str = "",
     exclude_ranges: list[FrameRange] | None = None,
 ) -> vs.VideoNode:
@@ -1879,7 +1879,7 @@ def pv_diff(
     Args:
         tv: The first video clip.
         bd: The second video clip.
-        thr: The threshold for considering a difference.
+        the: The threshold for considering a difference.
         name: The name to be logged.
         exclude_ranges: List of frame ranges to exclude from comparison.
 
@@ -1892,7 +1892,7 @@ def pv_diff(
     num_frames = [clip.num_frames for clip in clips]
     clips = [clip.std.Trim(0, min(num_frames) - 1) for clip in clips]
 
-    comparison, frames = diff(clips[0], clips[1], thr=thr, return_ranges=True)
+    comparison, frames = diff(clips[0], clips[1], the=the, return_ranges=True)
 
     if exclude_ranges:
         frames = [x for x in frames if x not in get_list(exclude_ranges)]
