@@ -1,23 +1,45 @@
-.PHONY: all clean test checks
+.PHONY: all clean default install lock update checks pc test docs run
 
-install-all: install pc-install
+default: checks
 
 install:
+	pre-commit install
 	poetry install --sync
 
-pc-install:
-	pre-commit install
+lock:
+	poetry lock --no-update
 
-update-latest:
+update:
 	poetry up --latest
 
-checks: pc-run install lint
+checks: pc install lint test
 
-pc-run:
+pc:
 	pre-commit run -a
 
 lint:
 	poetry run poe lint
 
 test:
-	poetry run pytest
+	poetry run poe test
+
+docs:
+	poetry run mkdocs serve
+
+run:
+	poetry run uvicorn --reload deadnews_template_python:app
+
+bumped:
+	git cliff --bumped-version
+
+# make release-tag_name
+# make release-$(git cliff --bumped-version)-alpha.0
+release-%: checks
+	git cliff -o CHANGELOG.md --tag $*
+	pre-commit run --files CHANGELOG.md || pre-commit run --files CHANGELOG.md
+	git add CHANGELOG.md
+	git commit -m "chore(release): prepare for $*"
+	git push
+	git tag -a $* -m "chore(release): $*"
+	git push origin $*
+	git tag --verify $*

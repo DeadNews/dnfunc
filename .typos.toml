@@ -1,2 +1,6 @@
+[files]
+extend-exclude = ["CHANGELOG.md"]
+
 [default.extend-words]
 hav = "hav"
+thr = "thr"
