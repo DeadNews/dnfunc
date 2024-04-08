@@ -21,7 +21,7 @@ lint:
 	poetry run poe lint
 
 test:
-	poetry run poe test
+	poetry run pytest
 
 bumped:
 	git cliff --bumped-version
