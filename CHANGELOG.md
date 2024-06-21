@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.0.6-alpha.5](https://github.com/DeadNews/dnfunc/compare/v0.0.5...v0.0.6-alpha.5) - 2024-04-08
+## [unreleased]
 
 ### 🚜 Refactor
 
@@ -8,9 +8,7 @@
 
 ### 📚 Documentation
 
-- _(changelog)_ add `git-cliff` - ([8ccc357](https://github.com/DeadNews/dnfunc/commit/8ccc3576ca248b2694c9f1c53b7b034f78722706))
-- _(changelog)_ add `git-cliff` - ([47fb52a](https://github.com/DeadNews/dnfunc/commit/47fb52acdd055e925eca2c75f24ff186120a6b25))
-- _(changelog)_ add `git-cliff` - ([7f76aad](https://github.com/DeadNews/dnfunc/commit/7f76aadd21530659aae81d64b10dd432f3cbff28))
+- _(changelog)_ add `git-cliff` ([#149](https://github.com/DeadNews/dnfunc/issues/149)) - ([53e1abb](https://github.com/DeadNews/dnfunc/commit/53e1abbe3c3abd69e462993462ded5313b6054db))
 - update docstrings ([#139](https://github.com/DeadNews/dnfunc/issues/139)) - ([5ee9cd7](https://github.com/DeadNews/dnfunc/commit/5ee9cd785d33cb215f48c363aec8ab8d411c9ffe))
 
 ### 🎨 Styling
@@ -19,13 +17,12 @@
 
 ### 🧹 Chores
 
-- _(makefile)_ update commands - ([4435085](https://github.com/DeadNews/dnfunc/commit/4435085ef497a7c14ed30fa7a475fef22d691d79))
-- _(makefile)_ update commands - ([78ba320](https://github.com/DeadNews/dnfunc/commit/78ba320ba2341c4cbd7c4d02c6db736691000338))
-- _(makefile)_ update commands - ([330d6be](https://github.com/DeadNews/dnfunc/commit/330d6be790d70d1b81ded8eb338612ed78b3eaf3))
+- _(typos)_ ignore short words - ([19557e2](https://github.com/DeadNews/dnfunc/commit/19557e295443b07254ef60dbfbec72640ad408fb))
 - update `ruff` settings - ([d437f96](https://github.com/DeadNews/dnfunc/commit/d437f96f8ddc10659d4d4e0f88f9216824965fe2))
 
 ### ⚙️ CI/CD
 
+- _(github)_ update `action-setup-vs` to `main` branch - ([ece26a5](https://github.com/DeadNews/dnfunc/commit/ece26a59c8c462c22799cda565a6d8441483e800))
 - _(pre-commit)_ add `checkmake` hook - ([7b47d89](https://github.com/DeadNews/dnfunc/commit/7b47d89e5c12db6a6b17b0a74eb8df80d8a6b63b))
 
 ## [0.0.5](https://github.com/DeadNews/dnfunc/compare/v0.0.4...v0.0.5) - 2023-11-18
@@ -73,7 +70,7 @@
 - _(deps)_ update dependency vstools to v2.2.1 ([#87](https://github.com/DeadNews/dnfunc/issues/87)) - ([735c434](https://github.com/DeadNews/dnfunc/commit/735c434ca1b8a4bf767d6b4ba837807fbafbc187))
 - _(deps)_ update dependency lvsfunc to ^0.8.0 ([#86](https://github.com/DeadNews/dnfunc/issues/86)) - ([a3113be](https://github.com/DeadNews/dnfunc/commit/a3113be70192b6022ec3e5cab94f2070525aded1))
 
-## [0.0.3] - 2023-05-06
+## [0.0.3](https://github.com/DeadNews/dnfunc/commits/v0.0.3) - 2023-05-06
 
 ### 🚀 Features
 
