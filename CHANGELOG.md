@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.0.6](https://github.com/DeadNews/dnfunc/compare/v0.0.5...v0.0.6) - 2024-06-29
 
 ### 🚜 Refactor
 
@@ -8,6 +8,7 @@
 
 ### 📚 Documentation
 
+- _(changelog)_ update `git-cliff` config - ([669e407](https://github.com/DeadNews/dnfunc/commit/669e40701167582ad44f54081cdeedf33a40bc6e))
 - _(changelog)_ add `git-cliff` ([#149](https://github.com/DeadNews/dnfunc/issues/149)) - ([53e1abb](https://github.com/DeadNews/dnfunc/commit/53e1abbe3c3abd69e462993462ded5313b6054db))
 - update docstrings ([#139](https://github.com/DeadNews/dnfunc/issues/139)) - ([5ee9cd7](https://github.com/DeadNews/dnfunc/commit/5ee9cd785d33cb215f48c363aec8ab8d411c9ffe))
 
@@ -24,6 +25,10 @@
 
 - _(github)_ update `action-setup-vs` to `main` branch - ([ece26a5](https://github.com/DeadNews/dnfunc/commit/ece26a59c8c462c22799cda565a6d8441483e800))
 - _(pre-commit)_ add `checkmake` hook - ([7b47d89](https://github.com/DeadNews/dnfunc/commit/7b47d89e5c12db6a6b17b0a74eb8df80d8a6b63b))
+
+### ⬆️ Dependencies
+
+- _(deps)_ update dependencies - ([d9636e6](https://github.com/DeadNews/dnfunc/commit/d9636e6cda231f70150f7498bcfa19797d2cfc53))
 
 ## [0.0.5](https://github.com/DeadNews/dnfunc/compare/v0.0.4...v0.0.5) - 2023-11-18
 
