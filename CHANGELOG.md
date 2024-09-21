@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.7](https://github.com/DeadNews/dnfunc/compare/v0.0.6...v0.0.7) - 2024-09-21
+
+### ⬆️ Dependencies
+
+- _(deps)_ update dependencies - ([7c97b2a](https://github.com/DeadNews/dnfunc/commit/7c97b2a5aadac2ac6fba0856ae53612229c5e773))
+- _(deps)_ update dependency pyyaml to v6.0.2 ([#158](https://github.com/DeadNews/dnfunc/issues/158)) - ([8f3f345](https://github.com/DeadNews/dnfunc/commit/8f3f345495ded3615ccd5f6de7c2550fe960415d))
+
 ## [0.0.6](https://github.com/DeadNews/dnfunc/compare/v0.0.5...v0.0.6) - 2024-06-29
 
 ### 🚜 Refactor
