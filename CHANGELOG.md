@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.0](https://github.com/DeadNews/dnfunc/compare/v0.0.7...v0.1.0) - 2024-09-21
+
+### ⬆️ Dependencies
+
+- _(deps)_ update dependencies - ([cd9dc2e](https://github.com/DeadNews/dnfunc/commit/cd9dc2e45644ac1d1a18a512fec64a6aa3124a42))
+
 ## [0.0.7](https://github.com/DeadNews/dnfunc/compare/v0.0.6...v0.0.7) - 2024-09-21
 
 ### ⬆️ Dependencies
