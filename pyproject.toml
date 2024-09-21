@@ -19,18 +19,18 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.12"
-vapoursynth = "^66"
+vapoursynth = "*"
 havsfunc = "^33"
 lvsfunc = "^0.8.0"
-pyyaml = "^6.0.1"
-vstools = "^3.0.1"
+pyyaml = "^6.0.2"
+vstools = "^3.2.0"
 vsutil = "^0.8.0"
 
 [tool.poetry.group.lint.dependencies]
 mypy = "^1.11.2"
 poethepoet = "^0.28.0"
 ruff = "^0.6.6"
-types-pyyaml = "^6.0.12.20240311"
+types-pyyaml = "^6.0.12.20240917"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.3"
