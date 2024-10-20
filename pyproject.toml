@@ -23,11 +23,11 @@ vapoursynth = "^70"
 havsfunc = "^33"
 lvsfunc = "^0.8.0"
 pyyaml = "^6.0.2"
-vstools = "^3.2.0"
+vstools = "^3.3.3"
 vsutil = "^0.8.0"
 
 [tool.poetry.group.lint.dependencies]
-mypy = "^1.12.0"
+mypy = "^1.12.1"
 poethepoet = "^0.29.0"
 ruff = "^0.7.0"
 types-pyyaml = "^6.0.12.20240917"

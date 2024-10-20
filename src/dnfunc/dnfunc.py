@@ -12,7 +12,7 @@ import havsfunc as hav
 import insane_aa as iaa
 import kagefunc as kg
 import vapoursynth as vs
-from vstools import FrameRange, FrameRangeN, FrameRangesN, rfs
+from vstools import FrameRange, FrameRangeN, FrameRangesN, replace_ranges
 from vsutil import depth, get_depth, get_y, iterate, join, split
 from yaml import safe_load
 
@@ -1024,7 +1024,7 @@ def rfs_color(
 
     replaced = masked_merge(f1, f2, mask=mask, yuv=False)
 
-    return rfs(f1, replaced, maps) if maps else replaced
+    return replace_ranges(f1, replaced, maps) if maps else replaced
 
 
 def image_mask(maskname: str, format_src: vs.VideoNode) -> vs.VideoNode:
@@ -1042,7 +1042,7 @@ def rfs_image(
     mask = image_mask(maskname, format_src=mrgc)
     replaced = masked_merge(mrgc, epis, mask=mask, yuv=yuv)
 
-    return rfs(mrgc, replaced, maps) if maps else replaced
+    return replace_ranges(mrgc, replaced, maps) if maps else replaced
 
 
 def rfs_diff(
@@ -1059,7 +1059,7 @@ def rfs_diff(
 
     replaced = masked_merge(mrgc, epis, mask=mask, yuv=yuv)
 
-    return rfs(mrgc, replaced, maps) if maps else replaced
+    return replace_ranges(mrgc, replaced, maps) if maps else replaced
 
 
 def diff_rescale_mask(source: vs.VideoNode, dset: AASettings) -> vs.VideoNode:
@@ -1139,7 +1139,7 @@ def rfs_resc(
 
     replaced = masked_merge(mrgc, epis, mask=mask)
 
-    return rfs(mrgc, replaced, maps) if maps else replaced
+    return replace_ranges(mrgc, replaced, maps) if maps else replaced
 
 
 def _hard(clip: vs.VideoNode, mthr: int, yuv: bool = False) -> vs.VideoNode:
@@ -1186,7 +1186,7 @@ def rfs_hard(
 ) -> vs.VideoNode:
     hard_ = hard(src, mthr=mthr, zone=zone, **override)
 
-    return rfs(mrgc, hard_, maps)
+    return replace_ranges(mrgc, hard_, maps)
 
 
 @dataclass(frozen=True)
@@ -1247,7 +1247,7 @@ def rfs_qtgmc(
 ) -> vs.VideoNode:
     stabilize = qtgmc(src, zone=zone, **override)
 
-    return rfs(mrgc, stabilize, maps)
+    return replace_ranges(mrgc, stabilize, maps)
 
 
 def get_kirsch2_mask(clip_y: vs.VideoNode) -> vs.VideoNode:
@@ -1363,7 +1363,7 @@ def rfs_dehalo(
 
     replaced = masked_merge(clip, dehalo, mask=mask, yuv=False)
 
-    return rfs(clip, replaced, maps) if maps else replaced
+    return replace_ranges(clip, replaced, maps) if maps else replaced
 
 
 def dehalo_chroma(clip: vs.VideoNode, zone: str = "") -> vs.VideoNode:
@@ -1411,7 +1411,7 @@ def rfs_repair(
 
     replaced = masked_merge(clip, repair, mask=mask, yuv=False)
 
-    return rfs(clip, replaced, maps) if maps else replaced
+    return replace_ranges(clip, replaced, maps) if maps else replaced
 
 
 @dataclass(frozen=True)
@@ -1430,7 +1430,7 @@ def rfs_linedark(
 
     replaced = hav.FastLineDarkenMOD(clip, **ldset.linedark_args)
 
-    return rfs(clip, replaced, maps) if maps else replaced
+    return replace_ranges(clip, replaced, maps) if maps else replaced
 
 
 @dataclass(frozen=True)
@@ -1465,7 +1465,7 @@ def rfs_sharp(
 
     replaced = masked_merge(clip, sharp, mask=mask, yuv=shset.yuv)
 
-    return rfs(clip, replaced, maps) if maps else replaced
+    return replace_ranges(clip, replaced, maps) if maps else replaced
 
 
 @dataclass
@@ -1852,7 +1852,7 @@ def rfs_black_crop(
 ) -> vs.VideoNode:
     fixed_black = clip.std.CropRel(top=top, bottom=bot).std.AddBorders(top=top, bottom=bot)
 
-    return rfs(clip, fixed_black, maps)
+    return replace_ranges(clip, fixed_black, maps)
 
 
 def get_list(ranges: list[FrameRange]) -> list[int]:
