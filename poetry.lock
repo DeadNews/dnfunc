@@ -500,13 +500,13 @@ vstools = ">=3.2.0"
 
 [[package]]
 name = "vstools"
-version = "3.3.3"
+version = "3.3.4"
 description = "Functions and utils related to VapourSynth."
 optional = false
 python-versions = ">=3.12"
 files = [
-    {file = "vstools-3.3.3-py3-none-any.whl", hash = "sha256:821cb7fe42f7d0618ac3e0e6a10fd163bda0a110a5b6af33a87a123f98767555"},
-    {file = "vstools-3.3.3.tar.gz", hash = "sha256:d67d9cddf9e69fe296c2aa212edabe0183ba24524af45eef95affb969b31e07a"},
+    {file = "vstools-3.3.4-py3-none-any.whl", hash = "sha256:e53da14e8566526c8b59e6e5a9d95efd6947e4006c7ae8c1acb1036278200c49"},
+    {file = "vstools-3.3.4.tar.gz", hash = "sha256:a79f0af525d2bf17939587e3a7f80d3efa93d5496ad644d3f29dc9ad238cfe6c"},
 ]
 
 [package.dependencies]
