@@ -27,13 +27,13 @@ vstools = "^3.3.3"
 vsutil = "^0.8.0"
 
 [tool.poetry.group.lint.dependencies]
-mypy = "^1.13.0"
-poethepoet = "^0.30.0"
-ruff = "^0.7.4"
+mypy = "^1.14.0"
+poethepoet = "^0.31.1"
+ruff = "^0.8.4"
 types-pyyaml = "^6.0.12.20240917"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^8.3.3"
+pytest = "^8.3.4"
 pytest-cov = "^6.0.0"
 
 [tool.poetry-dynamic-versioning]
