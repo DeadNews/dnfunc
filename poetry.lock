@@ -123,20 +123,19 @@ files = [
 
 [[package]]
 name = "lvsfunc"
-version = "0.8.3"
+version = "0.8.4"
 description = "Light's Vapoursynth Functions."
 optional = false
 python-versions = ">=3.12"
 files = [
-    {file = "lvsfunc-0.8.3-py3-none-any.whl", hash = "sha256:f0549ee4c8a86838a6333962d5cc227d15cd3e3691d00232f6894d3b4a4f582b"},
-    {file = "lvsfunc-0.8.3.tar.gz", hash = "sha256:f808956e779748d8cfc67076221eef9d9036f841346b51855d67dd810f45f445"},
+    {file = "lvsfunc-0.8.4-py3-none-any.whl", hash = "sha256:89c440207f0d4a55676fa3d3674c8915236c80aa15c926691551f6a6d65307b6"},
+    {file = "lvsfunc-0.8.4.tar.gz", hash = "sha256:392baf77826457882739c9ddd905577d779ba62d840f6540597d7311132745e5"},
 ]
 
 [package.dependencies]
 numpy = ">=2.1.1"
-stgfunc = ">=3.1.0"
 VapourSynth = ">=68"
-vsjetpack = ">=0.1.1"
+vsjetpack = ">=0.2.2"
 
 [[package]]
 name = "markdown-it-py"
@@ -578,21 +577,6 @@ doc = ["intersphinx_registry", "jupyterlite-pyodide-kernel", "jupyterlite-sphinx
 test = ["Cython", "array-api-strict (>=2.0,<2.1.1)", "asv", "gmpy2", "hypothesis (>=6.30)", "meson", "mpmath", "ninja", "pooch", "pytest", "pytest-cov", "pytest-timeout", "pytest-xdist", "scikit-umfpack", "threadpoolctl"]
 
 [[package]]
-name = "stgfunc"
-version = "3.1.2"
-description = "VapourSynth functions and utils"
-optional = false
-python-versions = ">=3.12"
-files = [
-    {file = "stgfunc-3.1.2-py3-none-any.whl", hash = "sha256:d9f671d5fb910dad64c58620e365b7e8d13263cc72fa2419293da2338a2f0d8e"},
-    {file = "stgfunc-3.1.2.tar.gz", hash = "sha256:84b780ed93a99dd047a6388ff0efe44002cdd9872f2cada3f7f59d9d6190d789"},
-]
-
-[package.dependencies]
-VapourSynth = ">=68"
-vsjetpack = ">=0.1.1"
-
-[[package]]
 name = "stgpytools"
 version = "1.2.2"
 description = "Collection of stuff that's useful in general python programming"
@@ -639,13 +623,13 @@ files = [
 
 [[package]]
 name = "vsjetpack"
-version = "0.2.1"
+version = "0.2.2"
 description = "Full suite of filters, wrappers, and helper functions for filtering video using VapourSynth"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "vsjetpack-0.2.1-py3-none-any.whl", hash = "sha256:ea33da0b606861486f6e992380ab49c78565c0fe35554450c902413800e4f918"},
-    {file = "vsjetpack-0.2.1.tar.gz", hash = "sha256:0d3ee1ece1bc0f3389a6217d75510466e4995c59bd6acc2caa5f9b260235a3ad"},
+    {file = "vsjetpack-0.2.2-py3-none-any.whl", hash = "sha256:9ed10736c1ec26a0c08a9d87c67ab8cc94570d4eb7cb12ea201fbe2d2848d16e"},
+    {file = "vsjetpack-0.2.2.tar.gz", hash = "sha256:1a1b278aec38287a28c021d0e94696167c9a0f238872b8a8e0e684cda07ec9e7"},
 ]
 
 [package.dependencies]
