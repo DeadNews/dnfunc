@@ -112,30 +112,33 @@ files = [
 
 [[package]]
 name = "jetpytools"
-version = "1.2.3"
+version = "1.3.0"
 description = "Collection of stuff that's useful in general python programming"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "jetpytools-1.2.3-py3-none-any.whl", hash = "sha256:d1fb1bf991b2e74febe8eea21f55d5bc665dd06537c29da5ac0bd99a139c1919"},
-    {file = "jetpytools-1.2.3.tar.gz", hash = "sha256:6121704025a32487116aedd1a9be3eda92514ff21361e08bf178ddc0a6f3cbd0"},
+    {file = "jetpytools-1.3.0-py3-none-any.whl", hash = "sha256:68fb0efcaa23cf72514201fe5f348a485d3e89a6bb63873d9605ee2e0ca4f6b5"},
+    {file = "jetpytools-1.3.0.tar.gz", hash = "sha256:b021c9e2da83d95db30f51540ce4a75c7c34f669266144d36fd71591b16baab5"},
 ]
+
+[package.dependencies]
+typing_extensions = ">=4.12.2"
 
 [[package]]
 name = "lvsfunc"
-version = "0.8.4"
+version = "0.8.5"
 description = "Light's Vapoursynth Functions."
 optional = false
 python-versions = ">=3.12"
 files = [
-    {file = "lvsfunc-0.8.4-py3-none-any.whl", hash = "sha256:89c440207f0d4a55676fa3d3674c8915236c80aa15c926691551f6a6d65307b6"},
-    {file = "lvsfunc-0.8.4.tar.gz", hash = "sha256:392baf77826457882739c9ddd905577d779ba62d840f6540597d7311132745e5"},
+    {file = "lvsfunc-0.8.5-py3-none-any.whl", hash = "sha256:d83f42a5d44674c57054007fb2e94aa1d51f7f636ee1a528ac708addab0c85ab"},
+    {file = "lvsfunc-0.8.5.tar.gz", hash = "sha256:d1be848a55ef19458e9995eb7babc008f471449dba49d57e7a4c3303880631c7"},
 ]
 
 [package.dependencies]
 numpy = ">=2.1.1"
 VapourSynth = ">=68"
-vsjetpack = ">=0.2.2"
+vsjetpack = ">=0.3.4"
 
 [[package]]
 name = "markdown-it-py"
@@ -617,21 +620,22 @@ files = [
 
 [[package]]
 name = "vsjetpack"
-version = "0.2.2"
+version = "0.3.4"
 description = "Full suite of filters, wrappers, and helper functions for filtering video using VapourSynth"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "vsjetpack-0.2.2-py3-none-any.whl", hash = "sha256:9ed10736c1ec26a0c08a9d87c67ab8cc94570d4eb7cb12ea201fbe2d2848d16e"},
-    {file = "vsjetpack-0.2.2.tar.gz", hash = "sha256:1a1b278aec38287a28c021d0e94696167c9a0f238872b8a8e0e684cda07ec9e7"},
+    {file = "vsjetpack-0.3.4-py3-none-any.whl", hash = "sha256:cff60f1ffe129486a5c4fb86aff5fe8fd60f98673b6d3fa3c61bbbcabbaea239"},
+    {file = "vsjetpack-0.3.4.tar.gz", hash = "sha256:a392cb127544377188654bc7a5377306ba4fb3f253ce7b8dc7da49f90030b258"},
 ]
 
 [package.dependencies]
-jetpytools = ">=1.2.3"
+jetpytools = ">=1.3.0,<1.4.0"
 numpy = ">=2.0.0"
 rich = ">=12.6.0"
 scipy = ">=1.10.0"
-VapourSynth = ">=68"
+typing_extensions = ">=4.12.2"
+VapourSynth = ">=67"
 
 [[package]]
 name = "vstools"
